@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/transparency', [\App\Http\Controllers\TransparencyController::class, 'index'])->name('transparency.index');
+    Route::get('/transparency/pdf', [\App\Http\Controllers\TransparencyController::class, 'exportPdf'])->name('transparency.pdf');
     Route::get('/transparency/{id}/detail', [\App\Http\Controllers\TransparencyController::class, 'show'])->name('transparency.show');
 });
 
@@ -50,6 +51,10 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])
         Route::delete('/committees/{user}', [\App\Http\Controllers\SuperAdmin\CommitteeController::class, 'destroy'])->name('committees.destroy');
         Route::get('/committees/{user}/edit', [\App\Http\Controllers\SuperAdmin\CommitteeController::class, 'edit'])->name('committees.edit');
         Route::put('/committees/{user}', [\App\Http\Controllers\SuperAdmin\CommitteeController::class, 'update'])->name('committees.update');
+
+        Route::get('/delegation/juries', [\App\Http\Controllers\SuperAdmin\JuryDelegationController::class, 'index'])->name('delegation.juries.index');
+        Route::patch('/delegation/juries/{lecturer}/toggle', [\App\Http\Controllers\SuperAdmin\JuryDelegationController::class, 'toggle'])->name('delegation.juries.toggle');
+
 });
 
 Route::middleware(['auth', 'verified', 'role:super_admin,admin_univ,admin_fakultas'])
@@ -64,11 +69,18 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_univ,admin_fakult
         Route::get('/ranking', [\App\Http\Controllers\Admin\RankingController::class, 'index'])->name('ranking.index');
         Route::get('/ranking/pdf', [\App\Http\Controllers\Admin\RankingController::class, 'exportPdf'])->name('ranking.pdf');
         Route::post('/ranking/{registration}/delegate', [\App\Http\Controllers\Admin\RankingController::class, 'delegate'])->name('ranking.delegate');
+        Route::patch('/ranking/{registration}/cancel-delegate', [\App\Http\Controllers\Admin\RankingController::class, 'cancelDelegate'])->name('ranking.cancel_delegate');
+        
         Route::get('/juries', [\App\Http\Controllers\Admin\JuriController::class, 'index'])->name('juries.index');
         Route::post('/juries', [\App\Http\Controllers\Admin\JuriController::class, 'store'])->name('juries.store');
         Route::delete('/juries/{user}', [\App\Http\Controllers\Admin\JuriController::class, 'destroy'])->name('juries.destroy');
         Route::get('/juries/{user}/edit', [\App\Http\Controllers\Admin\JuriController::class, 'edit'])->name('juries.edit');
         Route::put('/juries/{user}', [\App\Http\Controllers\Admin\JuriController::class, 'update'])->name('juries.update');
+
+        Route::get('/participants', [\App\Http\Controllers\Admin\ParticipantController::class, 'index'])->name('participants.index');
+        Route::post('/participants', [\App\Http\Controllers\Admin\ParticipantController::class, 'store'])->name('participants.store');
+        Route::put('/participants/{user}', [\App\Http\Controllers\Admin\ParticipantController::class, 'update'])->name('participants.update');
+        Route::delete('/participants/{user}', [\App\Http\Controllers\Admin\ParticipantController::class, 'destroy'])->name('participants.destroy');
 });
 
 Route::middleware(['auth', 'verified', 'role:dosen'])
@@ -86,6 +98,7 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])
     ->group(function () {
         Route::get('/registration', [\App\Http\Controllers\Student\RegistrationController::class, 'index'])->name('registration.index');
         Route::put('/registration', [\App\Http\Controllers\Student\RegistrationController::class, 'update'])->name('registration.update');
+        
         Route::get('/achievements', [\App\Http\Controllers\Student\AchievementController::class, 'index'])->name('achievements.index');
         Route::post('/achievements', [\App\Http\Controllers\Student\AchievementController::class, 'store'])->name('achievements.store');
         Route::delete('/achievements/{id}', [\App\Http\Controllers\Student\AchievementController::class, 'destroy'])->name('achievements.destroy');

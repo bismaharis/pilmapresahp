@@ -13,7 +13,7 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6">
         @csrf
         @method('patch')
 
@@ -50,6 +50,18 @@
                     @endif
                 </div>
             @endif
+        </div>
+
+        <div>
+            <x-input-label for="faculty_id" :value="__('Pilih Fakultas (Khusus Admin/Panitia)')" />
+            <select name="faculty_id" id="faculty_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <option value="">-- Tidak Memilih Fakultas --</option>
+                @foreach($faculties as $faculty)
+                    <option value="{{ $faculty->id }}" {{ old('faculty_id', $user->faculty_id) == $faculty->id ? 'selected' : '' }}>
+                        {{ $faculty->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
         <div class="flex items-center gap-4">

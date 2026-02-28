@@ -11,6 +11,7 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <link rel="icon" type="image/png" href="{{ asset('images/logo-unram.png') }}">
 
         <!-- Scripts --> 
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -67,8 +68,11 @@
                     <div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="text-sm font-semibold text-gray-500 hover:text-red-500 transition">
-                                Keluar (Logout)
+                            <button type="submit" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-red-500 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                                </svg>
+                                Keluar
                             </button>
                         </form>
                     </div>

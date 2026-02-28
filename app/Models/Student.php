@@ -12,7 +12,7 @@ class Student extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'nim', 'prodi', 'faculty_id', 'semester', 'ipk'
+        'user_id', 'faculty_id', 'nim', 'prodi', 'semester', 'ipk'
     ];
 
     public function user(): BelongsTo
@@ -23,5 +23,10 @@ class Student extends Model
     public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);
+    }
+
+    public function faculty()
+    {
+        return $this->belongsTo(Faculty::class);
     }
 }

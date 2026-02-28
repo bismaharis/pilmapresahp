@@ -73,7 +73,8 @@
 
     <div class="title">
         DAFTAR PERINGKAT (LEADERBOARD) PILMAPRES<br>
-        TAHAP {{ strtoupper($stage) }} TAHUN 2026
+        TAHAP {{ strtoupper($stage) }} {{ $facultyNameTitle ?? '' }}<br>
+        TAHUN 2026
     </div>
 
     <table>

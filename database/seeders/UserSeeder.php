@@ -27,14 +27,14 @@ class UserSeeder extends Seeder
 
         User::create([
             'name' => 'Super Admin',
-            'email' => 'superadmin@pilmapres.com',
+            'email' => 'superadmin@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'super_admin',
             'email_verified_at' => now(),
         ]);
         User::create([
             'name' => 'Admin Universitas',
-            'email' => 'adminuniv@pilmapres.com',
+            'email' => 'adminuniv@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'admin_univ',
             'email_verified_at' => now(),
@@ -57,7 +57,7 @@ class UserSeeder extends Seeder
         foreach ($fakultasProdi as $facId => $prodis) {
             User::create([
                 'name' => 'Admin Fakultas ' . $facId,
-                'email' => 'adminfakultas'.$facId.'@pilmapres.com',
+                'email' => 'adminfakultas'.$facId.'@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'admin_fakultas',
                 'faculty_id' => $facId,
@@ -67,7 +67,7 @@ class UserSeeder extends Seeder
             for ($j = 1; $j <= 2; $j++) {
                 $juri = User::create([
                     'name' => 'Dr. Juri Fakultas ' . $facId . ' - ' . $j,
-                    'email' => 'juri'.$facId.'_'.$j.'@pilmapres.com',
+                    'email' => 'juri'.$facId.'_'.$j.'@gmail.com',
                     'password' => Hash::make('password'),
                     'role' => 'dosen',
                     'faculty_id' => $facId,
@@ -75,9 +75,11 @@ class UserSeeder extends Seeder
                 ]);
                 DB::table('lecturers')->insert([
                     'user_id' => $juri->id,
+                    'faculty_id' => $facId,
                     'nip' => $faker->unique()->numerify('198#######2025011001'),
                     'unit_kerja' => 'Fakultas ' . $facId,
-                    'created_at' => now(), 'updated_at' => now()
+                    'created_at' => now(), 
+                    'updated_at' => now()
                 ]);
             }
 

@@ -56,19 +56,32 @@
                     @endif
                     <a href="{{ route('admin.juries.index') }}" class="block px-14 py-2 text-sm {{ request()->routeIs('admin.juries.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'text-gray-400 hover:text-white'}}">Data Juri</a>
                     
-                    <a href="#" class="block px-14 py-2 text-sm text-gray-500 italic cursor-not-allowed" title="Route admin.participants belum dibuat">Data Peserta (Soon)</a>
+                    <a href="{{ route('admin.participants.index') }}" class="block px-14 py-2 text-sm {{ request()->routeIs('admin.participants.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'text-gray-500 hover:text-white'}}">Data Peserta</a>
                 </div>
             </div>
 
-            <a href="{{ route('admin.ranking.index') }}" class="flex items-center px-6 py-3 {{ request()->routeIs('admin.ranking.index') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'hover:bg-gray-700 hover:text-white'}}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                Pendelegasian Peserta
-            </a>
+            <div x-data="{ open: {{ request()->routeIs('superadmin.delegation.*', 'admin.ranking.*') ? 'true' : 'false' }} }">
+                <button @click="open = !open" class="w-full flex items-center justify-between px-6 py-3 hover:bg-gray-700 hover:text-white transition">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        Pendelegasian
+                    </div>
+                    <svg :class="{'rotate-180': open}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+                <div x-show="open" x-collapse class="bg-[#333333]">
+                    
+                    @if(Auth::user()->role === 'super_admin')
+                        <a href="{{ route('superadmin.delegation.juries.index') }}" class="block px-14 py-2 text-sm {{ request()->routeIs('superadmin.delegation.juries.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'text-gray-400 hover:text-white'}}">Delegasi Juri</a>
+                    @endif
+                    
+                    <a href="{{ route('admin.ranking.index') }}" class="block px-14 py-2 text-sm {{ request()->routeIs('admin.ranking.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'text-gray-400 hover:text-white'}}">Delegasi Peserta</a>
+                </div>
+            </div>
             
             @if(in_array(Auth::user()->role, ['super_admin', 'admin_univ']))
                 <a href="{{ route('admin.criteria.index') }}" class="flex items-center px-6 py-3 {{ request()->routeIs('admin.criteria.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'hover:bg-gray-700 hover:text-white'}}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Master Data Kriteria
+                    Kriteria
                 </a>
             @endif
 

@@ -24,7 +24,9 @@ class AssessmentController extends Controller
 
         // Mulai Query Dasar
         $query = Registration::with(['student.user', 'achievements'])
-            ->where('status', '!=', 'draft'); 
+            ->whereIn('status', ['submitted', 'verified', 'approved']) 
+            ->whereNotNull('file_gk')
+            ->whereNotNull('file_transkrip'); 
             
         // PENERAPAN LOGIKA JURI
         if ($juri->is_univ_judge) {

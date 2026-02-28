@@ -11,9 +11,12 @@ use Illuminate\View\View;
 
 class CriteriaController extends Controller
 {
-    public function __construct(
-        protected AhpSettingsService $ahpService
-    ) {}
+    protected $ahpService;
+
+    public function __construct(AhpSettingsService $ahpService)
+    {
+        $this->ahpService = $ahpService;
+    }
 
     public function index(): View
     {
@@ -37,7 +40,7 @@ class CriteriaController extends Controller
 
         Criteria::create([
             'name' => $request->name,
-            'weight' => $request->weight / 100, 
+            'weight' => $request->weight / 100, // <--- RUMUS INI WAJIB ADA
             'max_score' => $request->max_score,
             'type' => $request->type ?? 'general',
             'parent_id' => $request->parent_id
@@ -46,7 +49,7 @@ class CriteriaController extends Controller
         return back()->with('success', 'Kriteria baru berhasil ditambahkan.');
     }
 
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(Request $request, int $id)
     {
         $criteria = Criteria::findOrFail($id);
 
@@ -58,10 +61,9 @@ class CriteriaController extends Controller
         ]);
 
         try {
-            // Update data inti ke database
             $criteria->update([
                 'name' => $request->name,
-                'weight' => $request->weight / 100, 
+                'weight' => $request->weight / 100, // <--- RUMUS INI WAJIB ADA
                 'max_score' => $request->max_score,
                 'type' => $request->type ?? $criteria->type
             ]);

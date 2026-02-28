@@ -16,8 +16,11 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $faculties = \App\Models\Faculty::all();
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'faculties' => $faculties,
         ]);
     }
 
@@ -50,6 +53,7 @@ class ProfileController extends Controller
     public function updateAcademic(Request $request): RedirectResponse
     {
         $request->validate([
+            'faculty_id' => 'required|exists:faculties,id',
             'nim' => 'required|string|max:20',
             'prodi' => 'required|string|max:100',
             'semester' => 'required|integer|min:1|max:14',
@@ -58,7 +62,7 @@ class ProfileController extends Controller
 
         $request->user()->student()->updateOrCreate(
             ['user_id' => $request->user()->id],
-            $request->only(['nim', 'prodi', 'semester', 'ipk'])
+            $request->only(['faculty_id', 'nim', 'prodi', 'semester', 'ipk'])
         );
 
         return back()->with('status', 'academic-updated')->with('success', 'Data Akademik berhasil disimpan!');
@@ -68,13 +72,14 @@ class ProfileController extends Controller
     public function updateLecturer(Request $request): RedirectResponse
     {
         $request->validate([
+            'faculty_id' => 'required|exists:faculties,id',
             'nip' => 'nullable|string|max:50',
             'unit_kerja' => 'required|string|max:100',
         ]);
 
         $request->user()->lecturer()->updateOrCreate(
             ['user_id' => $request->user()->id],
-            $request->only(['nip', 'unit_kerja'])
+            $request->only(['faculty_id', 'nip', 'unit_kerja'])
         );
 
         return back()->with('status', 'lecturer-updated')->with('success', 'Data Pegawai berhasil disimpan!');
