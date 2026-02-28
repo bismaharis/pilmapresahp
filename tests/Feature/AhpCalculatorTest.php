@@ -1,12 +1,13 @@
 <?php
 
+use App\Models\Achievement;
 use App\Models\Assessment;
 use App\Models\Criteria;
+use App\Models\Faculty;
+use App\Models\Lecturer;
 use App\Models\Registration;
 use App\Models\Student;
 use App\Models\User;
-use App\Models\Achievement;
-use App\Models\Lecturer;
 use App\Services\AhpCalculatorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,11 @@ it('menghitung nilai akhir AHP dengan sangat akurat', function () {
     // ---------------------------------------------------------
     // 2. SETUP USER & PENDAFTARAN
     // ---------------------------------------------------------
+    $faculty = Faculty::create(['name' => 'Fakultas Teknik', 'slug' => 'teknik']);
+    
+    // Pastikan user diberi role dan faculty_id
+    $user = User::factory()->create(['role' => 'mahasiswa', 'faculty_id' => $faculty->id]);
+    
     DB::table('pilmapres_periods')->insert([
         'id' => 1,
         'year' => '2026',
@@ -40,10 +46,14 @@ it('menghitung nilai akhir AHP dengan sangat akurat', function () {
         'start_date' => now(),
         'end_date' => now()->addMonths(3),
     ]);
-    
-    $user = User::factory()->create();
+    $faculty = Faculty::firstOrCreate(
+        ['slug' => 'teknik'], 
+        ['name' => 'Fakultas Teknik']
+    );
+
     $student = Student::create([
         'user_id' => $user->id, 
+        'faculty_id' => $faculty->id, 
         'nim' => 'A1B2C3', 
         'prodi' => 'Teknik Informatika',
         'semester' => 6,
@@ -64,6 +74,8 @@ it('menghitung nilai akhir AHP dengan sangat akurat', function () {
     Achievement::create([
         'registration_id' => $registration->id,
         'name' => 'Juara 1 Web Design',
+        // 'capaian' must be provided due to NOT NULL constraint
+        'capaian' => 'Juara 1 Web Design',
         'category' => 'Kompetisi',
         'level' => 'Nasional',
         'year' => 2025,
@@ -76,13 +88,20 @@ it('menghitung nilai akhir AHP dengan sangat akurat', function () {
     // 4. SETUP PENILAIAN JURI (GK)
     // ---------------------------------------------------------
     // Juri memberikan nilai 80 (dari maksimal 100) untuk kriteria Substansi
-    $juriUser = User::factory()->create();
-    $juri = Lecturer::create(['user_id' => $juriUser->id, 'nip' => '12345', 'unit_kerja' => 'Teknik Informatika']);
+    $juriUser = User::factory()->create(['role' => 'dosen', 'faculty_id' => $faculty->id]);
+    $juri = Lecturer::create([
+        'user_id' => $juriUser->id, 
+        'faculty_id' => $faculty->id, 
+        'nip' => '12345', 
+        'unit_kerja' => 'Teknik Informatika'
+    ]);
+
+    // create a juror assessment for the GK sub-criteria with score 80
     Assessment::create([
         'registration_id' => $registration->id,
         'lecturer_id' => $juri->id,
         'criteria_id' => $gkSub->id,
-        'score' => 80
+        'score' => 80,
     ]);
 
     // ---------------------------------------------------------

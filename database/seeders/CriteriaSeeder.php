@@ -50,7 +50,7 @@ class CriteriaSeeder extends Seeder
             DB::table('criterias')->insert([
                 'name' => $item,
                 'type' => 'cu',
-                'weight' => 0.143, 
+                'weight' => 1/7, 
                 'max_score' => 50,
                 'parent_id' => $id_cu,
                 'created_at' => now(), 'updated_at' => now()
@@ -113,14 +113,14 @@ class CriteriaSeeder extends Seeder
             'name' => 'Substansi', 'type' => 'gk', 'weight' => 0.70, 'max_score' => 0, 'parent_id' => $id_gk_naskah, 'created_at' => now(), 'updated_at' => now()
         ]);
             $substansi_items = [
-                ['name' => 'Fakta / Gejala', 'weight' => 0.114, 'max' => 8],
-                ['name' => 'Identifikasi Masalah', 'weight' => 0.114, 'max' => 8],
-                ['name' => 'Rumusan Masalah', 'weight' => 0.143, 'max' => 10],
-                ['name' => 'Akibat', 'weight' => 0.114, 'max' => 8],
-                ['name' => 'Solusi SMART', 'weight' => 0.214, 'max' => 15], 
-                ['name' => 'Dampak Lanjutan', 'weight' => 0.114, 'max' => 8],
-                ['name' => 'Langkah Tindakan', 'weight' => 0.114, 'max' => 8],
-                ['name' => 'Kendala', 'weight' => 0.071, 'max' => 5],
+                ['name' => 'Fakta / Gejala', 'weight' => 8 / 70, 'max' => 8],
+                ['name' => 'Identifikasi Masalah', 'weight' => 8 / 70, 'max' => 8],
+                ['name' => 'Rumusan Masalah', 'weight' => 10 / 70, 'max' => 10],
+                ['name' => 'Akibat', 'weight' => 8 / 70, 'max' => 8],
+                ['name' => 'Solusi SMART', 'weight' => 15 / 70, 'max' => 15], 
+                ['name' => 'Dampak Lanjutan', 'weight' => 8 / 70, 'max' => 8],
+                ['name' => 'Langkah Tindakan', 'weight' => 8 / 70, 'max' => 8],
+                ['name' => 'Kendala', 'weight' => 5 / 70, 'max' => 5],
             ];
             foreach($substansi_items as $item) {
                 DB::table('criterias')->insert(['name' => $item['name'], 'type' => 'gk', 'weight' => $item['weight'], 'max_score' => $item['max'], 'parent_id' => $id_gk_naskah_substansi, 'created_at' => now(), 'updated_at' => now()]);
@@ -140,10 +140,10 @@ class CriteriaSeeder extends Seeder
             'name' => 'Presentasi (Delivery)', 'type' => 'gk', 'weight' => 0.50, 'max_score' => 0, 'parent_id' => $id_gk_presentasi, 'created_at' => now(), 'updated_at' => now()
         ]);
              DB::table('criterias')->insert([
-                ['name' => 'Poster', 'type' => 'gk', 'weight' => 0.30, 'max_score' => 15, 'parent_id' => $id_gk_pres_delivery, 'created_at' => now(), 'updated_at' => now()],
-                ['name' => 'Sistematika', 'type' => 'gk', 'weight' => 0.30, 'max_score' => 15, 'parent_id' => $id_gk_pres_delivery, 'created_at' => now(), 'updated_at' => now()],
-                ['name' => 'Cara Menjelaskan', 'type' => 'gk', 'weight' => 0.30, 'max_score' => 15, 'parent_id' => $id_gk_pres_delivery, 'created_at' => now(), 'updated_at' => now()],
-                ['name' => 'Ketepatan Waktu', 'type' => 'gk', 'weight' => 0.10, 'max_score' => 5, 'parent_id' => $id_gk_pres_delivery, 'created_at' => now(), 'updated_at' => now()],
+                ['name' => 'Poster', 'type' => 'gk', 'weight' => 15/50, 'max_score' => 15, 'parent_id' => $id_gk_pres_delivery, 'created_at' => now(), 'updated_at' => now()],
+                ['name' => 'Sistematika', 'type' => 'gk', 'weight' => 15/50, 'max_score' => 15, 'parent_id' => $id_gk_pres_delivery, 'created_at' => now(), 'updated_at' => now()],
+                ['name' => 'Cara Menjelaskan', 'type' => 'gk', 'weight' => 15/50, 'max_score' => 15, 'parent_id' => $id_gk_pres_delivery, 'created_at' => now(), 'updated_at' => now()],
+                ['name' => 'Ketepatan Waktu', 'type' => 'gk', 'weight' => 5/50, 'max_score' => 5, 'parent_id' => $id_gk_pres_delivery, 'created_at' => now(), 'updated_at' => now()],
             ]);
 
         // Presentasi: Tanya Jawab (50%)
@@ -151,8 +151,8 @@ class CriteriaSeeder extends Seeder
             'name' => 'Tanya Jawab', 'type' => 'gk', 'weight' => 0.50, 'max_score' => 0, 'parent_id' => $id_gk_presentasi, 'created_at' => now(), 'updated_at' => now()
         ]);
             DB::table('criterias')->insert([
-                ['name' => 'Ketepatan Jawaban', 'type' => 'gk', 'weight' => 0.60, 'max_score' => 30, 'parent_id' => $id_gk_pres_qa, 'created_at' => now(), 'updated_at' => now()],
-                ['name' => 'Cara Menjawab', 'type' => 'gk', 'weight' => 0.40, 'max_score' => 20, 'parent_id' => $id_gk_pres_qa, 'created_at' => now(), 'updated_at' => now()],
+                ['name' => 'Ketepatan Jawaban', 'type' => 'gk', 'weight' => 30/50, 'max_score' => 30, 'parent_id' => $id_gk_pres_qa, 'created_at' => now(), 'updated_at' => now()],
+                ['name' => 'Cara Menjawab', 'type' => 'gk', 'weight' => 20/50, 'max_score' => 20, 'parent_id' => $id_gk_pres_qa, 'created_at' => now(), 'updated_at' => now()],
             ]);
     }
 }

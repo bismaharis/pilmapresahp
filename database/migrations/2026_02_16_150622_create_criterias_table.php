@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->enum('type', ['cu', 'gk', 'bi']); 
             
-            $table->decimal('weight', 5, 4)->default(0); 
+            $table->decimal('weight', 10, 6)->default(0); 
             
             $table->float('max_score')->default(0);
             $table->timestamps();

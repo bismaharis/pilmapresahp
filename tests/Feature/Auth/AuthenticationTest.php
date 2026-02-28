@@ -9,13 +9,20 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    // 1. Buat user dengan password dan role yang PASTI
+    $user = User::factory()->create([
+        'role' => 'mahasiswa',
+        'password' => \Illuminate\Support\Facades\Hash::make('password'),
+    ]);
 
+    // 2. Lakukan proses login
     $response = $this->post('/login', [
-        'email' => $user->email,
+        // the login form uses a single "login" field (email, name, or NIM)
+        'login' => $user->email,
         'password' => 'password',
     ]);
 
+    // 3. Pastikan berhasil login dan diarahkan dengan benar
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
 });
