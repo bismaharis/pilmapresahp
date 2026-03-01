@@ -9,6 +9,7 @@ use App\Models\Faculty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ParticipantController extends Controller
 {
@@ -100,7 +101,25 @@ class ParticipantController extends Controller
 
     public function destroy(User $user)
     {
-        $user->delete();
-        return back()->with('success', 'Akun Peserta berhasil dihapus!');
+        // $user->delete();
+        // return back()->with('success', 'Akun Peserta berhasil dihapus!');
+
+        try {
+        DB::transaction(function () use ($user) {
+            if ($user->student) {
+                DB::table('registrations')
+                    ->where('student_id', $user->student->id)
+                    ->delete();
+
+                $user->student->delete();
+            }
+
+            $user->delete();
+        });
+
+        return back()->with('success', 'Akun Peserta dan semua data terkait berhasil dihapus!');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+    }
     }
 }

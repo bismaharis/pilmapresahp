@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('registrations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('period_id')->constrained('pilmapres_periods');
-            $table->foreignId('student_id')->constrained('students');
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
             
             // Status Pendaftaran
             $table->enum('stage', ['fakultas', 'universitas'])->default('fakultas');
