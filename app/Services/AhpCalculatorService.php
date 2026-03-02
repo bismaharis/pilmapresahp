@@ -5,20 +5,23 @@ namespace App\Services;
 use App\Models\Registration;
 use App\Models\Criteria;
 use App\Models\Assessment;
-use Illuminate\Support\Facades\DB;
+// use Illuminate\Support\Facades\DB;
 
 class AhpCalculatorService
 {
     public function calculateFinalScore(Registration $registration): float
     {
         $globalWeights = $this->calculateGlobalWeights();
-        
+    
+        // 1. Hitung Skor CU
         $cuScore = $this->calculateCUScore($registration, $globalWeights);
         
+        // 2. Hitung Skor Juri (GK & BI) - Pastikan TIDAK menghitung ulang CU
         $juriScore = $this->calculateJuriScore($registration, $globalWeights);
         
         $finalScore = $cuScore + $juriScore;
 
+        // Update skor ke database
         if ($registration->stage === 'fakultas') {
             $registration->update(['total_score_fakultas' => $finalScore]);
         } else {
@@ -55,25 +58,19 @@ class AhpCalculatorService
     private function calculateCUScore(Registration $registration, array $globalWeights): float
     {
         $totalCuScore = 0;
-        
+        // Ambil kriteria yang bertipe 'cu' dan merupakan leaf node (tidak punya anak)
         $cuCriterias = Criteria::where('type', 'cu')->doesntHave('children')->get();
-        $achievements = $registration->achievements()->get()->groupBy('category');
 
         foreach ($cuCriterias as $criteria) {
-            $items = $achievements->get($criteria->name, collect());
-            
-            $rawScore = 0;
-            foreach ($items->take(4) as $item) {
-                $score = match($item->level) {
-                    'Internasional' => 50,
-                    'Nasional' => 40,
-                    'Provinsi' => 30,
-                    default => 20
-                };
-                $rawScore += $score;
-            }
+            $assessment = Assessment::where('registration_id', $registration->id)
+                ->where('criteria_id', $criteria->id)
+                ->first();
 
-            $normalized = ($rawScore / 200) * 100;
+            $rawScore = $assessment ? $assessment->score : 0;
+
+            // NORMALISASI: Gunakan max_score dari database, bukan hardcoded 50
+            $maxScore = $criteria->max_score > 0 ? $criteria->max_score : 50; 
+            $normalized = ($rawScore / $maxScore) * 100;
 
             $globalWeight = $globalWeights[$criteria->id] ?? 0;
             $totalCuScore += ($normalized * $globalWeight);
@@ -86,7 +83,11 @@ class AhpCalculatorService
     {
         $totalScore = 0;
 
+        // PERBAIKAN: Tambahkan filter 'whereHas' untuk mengecualikan tipe 'cu'
         $assessments = Assessment::where('registration_id', $registration->id)
+            ->whereHas('criteria', function($query) {
+                $query->where('type', '!=', 'cu');
+            })
             ->get()
             ->groupBy('criteria_id');
 

@@ -12,10 +12,18 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
+                        
                         <h3 class="text-lg font-medium text-gray-900 mb-4">
                             Biodata Peserta
                         </h3>
                         <div class="space-y-3 text-sm">
+                            <div class="w-24 h-24 bg-white overflow-hidden mb-3 shadow-inner flex items-center justify-center">
+                                @if(Auth::user()->photo)
+                                    <img src="{{ asset('storage/' . Auth::user()->photo) }}" alt="Foto Profil" class="w-full h-full object-cover">
+                                @else
+                                    <svg class="w-16 h-16 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                @endif
+                            </div>
                             <div>
                                 <span class="text-gray-500 block"
                                     >Nama Lengkap</span
@@ -48,9 +56,13 @@
                     </div>
 
                     <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">
                             Berkas Persyaratan
                         </h3>
+                        <h4 class="text-md font-medium text-gray-900 mb-1">
+                            Tahap Fakultas
+                        </h4>
+
                         <form
                             action="{{ route('student.registration.update') }}"
                             method="POST"
@@ -61,7 +73,7 @@
                             <div class="mb-4">
                                 <label
                                     class="block text-sm font-medium text-gray-700"
-                                    >Naskah Gagasan Kreatif (PDF)</label
+                                    >Naskah Gagasan Kreatif</label
                                 >
                                 <div class="mt-1 flex items-center">
                                     <input
@@ -91,7 +103,7 @@
                             <div class="mb-6">
                                 <label
                                     class="block text-sm font-medium text-gray-700"
-                                    >Transkrip Nilai (PDF)</label
+                                    >Transkrip Nilai</label
                                 >
                                 <div class="mt-1 flex items-center">
                                     <input
@@ -131,7 +143,7 @@
                                     </div>
                                     
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Poster Gagasan Kreatif (JPG/PNG/PDF)</label>
+                                        <label class="block text-sm font-medium text-gray-700">Poster Gagasan Kreatif</label>
                                         <div class="mt-1 flex items-center">
                                             <input type="file" name="file_poster_gk" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                         </div>
@@ -149,7 +161,7 @@
                                     </div>
 
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700">Poster Diri (JPG/PNG/PDF)</label>
+                                        <label class="block text-sm font-medium text-gray-700">Poster Diri</label>
                                         <div class="mt-1 flex items-center">
                                             <input type="file" name="file_poster_diri" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                         </div>

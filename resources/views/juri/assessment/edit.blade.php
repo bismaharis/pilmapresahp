@@ -118,9 +118,6 @@
                                         
                                         @if(strtoupper($root->name) == 'CAPAIAN UNGGULAN' || $root->type == 'cu')
                                             <div class="p-4 bg-white">
-                                                <p class="text-sm text-gray-600 mb-4 bg-blue-50 p-3 rounded border border-blue-100">
-                                                    💡 <strong>Evaluasi Berkas CU:</strong> Berikan nilai untuk setiap sertifikat/bukti yang dilampirkan. Sistem akan <strong>mengakumulasikan total nilai</strong> secara otomatis pada tiap kategori.
-                                                </p>
                                                 
                                                 @foreach($root->children as $kategori)
                                                     @php
@@ -170,7 +167,7 @@
                                                                                     <span class="text-[10px] font-bold text-red-500 mb-1 tracking-wider uppercase">Max: 50</span>
                                                                                     
                                                                                     <input type="number" name="achievement_scores[{{ $ach->id }}]" 
-                                                                                           value="{{ old('achievement_scores.'.$ach->id, $ach->score ?? '0') }}" 
+                                                                                           value="{{ old('achievement_scores.'.$ach->id, $ach->score ?? 0) }}" 
                                                                                            min="0" max="50" step="0.01" 
                                                                                            class="w-full text-center px-2 py-2 border-2 border-solid border-gray-300 rounded-md text-gray-900 font-bold text-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-inner cu-input-{{ $kategori->id }}"
                                                                                            oninput="calculateTotalCU({{ $kategori->id }})">
@@ -206,7 +203,7 @@
                                                                 <td class="px-4 py-3">{{ $level1->name }}</td>
                                                                 <td class="px-4 py-3 text-center font-bold text-gray-500">{{ $level1->max_score }}</td>
                                                                 <td class="px-4 py-2 text-center">
-                                                                    <input type="number" name="scores[{{ $level1->id }}]" value="{{ old('scores.'.$level1->id, isset($existingAssessments[$level1->id]) ? $existingAssessments[$level1->id]->score : '') }}" min="0" max="{{ $level1->max_score }}" step="0.01" class="w-full text-center px-2 py-1.5 border-2 border-solid border-gray-300 bg-white rounded-md text-gray-900 font-bold focus:border-gray-600 focus:ring-2 focus:ring-blue-200 focus:bg-white outline-none transition-all" required>
+                                                                    <input type="number" name="scores[{{ $level1->id }}]" value="{{ old('scores.'.$level1->id, isset($existingScores[$level1->id]) ? $existingScores[$level1->id] : '') }}" min="0" max="{{ $level1->max_score }}" step="0.01" class="w-full text-center px-2 py-1.5 border-2 border-solid border-gray-300 bg-white rounded-md text-gray-900 font-bold focus:border-gray-600 focus:ring-2 focus:ring-blue-200 focus:bg-white outline-none transition-all" required>
                                                                 </td>
                                                             </tr>
                                                         @else
@@ -224,7 +221,7 @@
                                                                         <td class="px-4 py-3 pl-6">{{ $level2->name }}</td>
                                                                         <td class="px-4 py-3 text-center font-bold text-gray-500">{{ $level2->max_score }}</td>
                                                                         <td class="px-4 py-2 text-center">
-                                                                            <input type="number" name="scores[{{ $level2->id }}]" value="{{ old('scores.'.$level2->id, isset($existingAssessments[$level2->id]) ? $existingAssessments[$level2->id]->score : '') }}" min="0" max="{{ $level2->max_score }}" step="0.01" class="w-full text-center px-2 py-1.5 border-2 border-solid border-gray-300 bg-white rounded-md text-gray-900 font-bold focus:border-blue-600 focus:ring-2 focus:ring-blue-200 focus:bg-white outline-none transition-all" required>
+                                                                            <input type="number" name="scores[{{ $level2->id }}]" value="{{ old('scores.'.$level2->id, isset($existingScores[$level2->id]) ? $existingScores[$level2->id] : '') }}" min="0" max="{{ $level2->max_score }}" step="0.01" class="w-full text-center px-2 py-1.5 border-2 border-solid border-gray-300 bg-white rounded-md text-gray-900 font-bold focus:border-blue-600 focus:ring-2 focus:ring-blue-200 focus:bg-white outline-none transition-all" required>
                                                                         </td>
                                                                     </tr>
                                                                 @else
@@ -240,7 +237,7 @@
                                                                             <td class="px-4 py-2 pl-10 text-gray-700">{{ $level3->name }}</td>
                                                                             <td class="px-4 py-2 text-center font-bold text-gray-500">{{ $level3->max_score }}</td>
                                                                             <td class="px-4 py-2 text-center">
-                                                                                <input type="number" name="scores[{{ $level3->id }}]" value="{{ old('scores.'.$level3->id, isset($existingAssessments[$level3->id]) ? $existingAssessments[$level3->id]->score : '') }}" min="0" max="{{ $level3->max_score }}" step="0.01" class="w-full text-center px-2 py-1.5 border-2 border-gray-300 rounded-md bg-white text-gray-900 font-bold focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-inner" required>
+                                                                                <input type="number" name="scores[{{ $level3->id }}]" value="{{ old('scores.'.$level3->id, isset($existingScores[$level3->id]) ? $existingScores[$level3->id] : '') }}" min="0" max="{{ $level3->max_score }}" step="0.01" class="w-full text-center px-2 py-1.5 border-2 border-gray-300 rounded-md bg-white text-gray-900 font-bold focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-inner" required>
                                                                             </td>
                                                                         </tr>
                                                                         @php $noL3++; @endphp
@@ -257,13 +254,18 @@
                                         
                                         <div class="p-4 bg-gray-50 border-t-2 border-gray-200">
                                             <label class="block text-sm font-bold text-gray-700 mb-2">Komentar/Catatan Evaluasi untuk {{ $root->name }} <span class="text-gray-400 font-normal">(Opsional)</span></label>
-                                            <textarea name="notes[{{ $root->id }}]" rows="2" class="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm shadow-sm" placeholder="Berikan catatan evaluasi singkat terkait komponen ini...">{{ old('notes.'.$root->id, isset($existingAssessments[$root->id]) ? $existingAssessments[$root->id]->notes : '') }}</textarea>
+                                            <textarea name="notes[{{ $root->id }}]" rows="2" class="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm shadow-sm" placeholder="Berikan catatan evaluasi singkat terkait komponen ini...">{{ old('notes.'.$root->id, isset($existingScores[$root->id]) ? $existingScores[$root->id] : '') }}</textarea>
                                         </div>
 
                                     </div>
+                                    
                                 </div>
                             @endforeach
-
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-semibold shadow-sm transition-colors">
+                                    Simpan Nilai
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>

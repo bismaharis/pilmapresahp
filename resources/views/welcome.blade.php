@@ -33,7 +33,7 @@
         @endif
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </head>
-    <body class="antialiased bg-unram relative min-h-screen font-sans">
+    <body class="antialiased bg-unram relative overflow-hidden h-screen font-sans">
         <div class="overlay absolute inset-0 z-0"></div>
         <div class="relative z-10 flex items-center justify-center min-h-screen px-4" x-data="{ showLogin: false }">
             <div x-show="!showLogin" x-transition.opacity.duration.500ms class="bg-white p-10 w-full max-w-sm shadow-2xl text-center relative">

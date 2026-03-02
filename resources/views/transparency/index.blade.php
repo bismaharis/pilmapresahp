@@ -5,8 +5,7 @@
 
     <div class="space-y-6">
         
-        
-        @if($role === 'mahasiswa' && isset($myRegistration))
+        {{-- @if($role === 'mahasiswa' && isset($myRegistration))
         <div class="bg-gradient-to-r from-cyan-600 to-blue-700 rounded-lg shadow-lg p-6 flex flex-col md:flex-row items-center justify-between text-white border-l-4 border-yellow-400">
             <div>
                 <h3 class="text-xl font-bold mb-1">Transparansi Penilaian AHP Anda</h3>
@@ -17,7 +16,7 @@
                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
             </a>
         </div>
-        @endif
+        @endif --}}
 
         <div class="bg-white shadow-sm rounded-lg p-6">
             <h2 class="text-xl font-bold mb-4 text-gray-800">Leaderboard Peserta</h2>
