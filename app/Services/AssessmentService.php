@@ -22,7 +22,6 @@ class AssessmentService
                     $achievement->score = $scoreValue ?? 0;
                     $achievement->save();
                     
-                    // Kelompokkan skor berdasarkan kategori kriteria
                     if (!isset($cuSums[$achievement->category])) {
                         $cuSums[$achievement->category] = 0;
                     }
@@ -36,10 +35,9 @@ class AssessmentService
                 $categories = Criteria::where('parent_id', $cuCriteriaRoot->id)->get();
                 
                 foreach ($categories as $cat) {
-                    // Gunakan pencarian case-insensitive atau pastikan data input sesuai
                     $totalScore = $cuSums[$cat->name] ?? 0;
                     
-                    $finalCategoryScore = min($totalScore, $cat->max_score); // Gunakan max_score dari DB
+                    $finalCategoryScore = min($totalScore, $cat->max_score); 
 
                     Assessment::updateOrCreate(
                         ['registration_id' => $registrationId, 'lecturer_id' => $lecturerId, 'criteria_id' => $cat->id],
@@ -54,7 +52,6 @@ class AssessmentService
                     ['score' => $scoreValue ?? 0]
                 );
             }
-            // 3. PROSES SIMPAN KOMENTAR EVALUASI
             foreach ($notes as $criteriaId => $noteText) {
                 if (!empty($noteText)) {
                     Assessment::updateOrCreate(

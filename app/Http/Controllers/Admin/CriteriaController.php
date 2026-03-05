@@ -63,7 +63,7 @@ class CriteriaController extends Controller
         try {
             $criteria->update([
                 'name' => $request->name,
-                'weight' => $request->weight / 100, // <--- RUMUS INI WAJIB ADA
+                'weight' => $request->weight / 100, 
                 'max_score' => $request->max_score,
                 'type' => $request->type ?? $criteria->type
             ]);

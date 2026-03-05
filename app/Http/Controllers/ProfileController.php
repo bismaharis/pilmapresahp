@@ -35,7 +35,6 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
-        // Logika Foto
         if ($request->hasFile('photo')) {
             if ($request->user()->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($request->user()->photo)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($request->user()->photo);
@@ -49,7 +48,7 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    // 2. METHOD BARU: KHUSUS UPDATE AKADEMIK MAHASISWA
+    // update mmhs
     public function updateAcademic(Request $request): RedirectResponse
     {
         $request->validate([
@@ -68,7 +67,7 @@ class ProfileController extends Controller
         return back()->with('status', 'academic-updated')->with('success', 'Data Akademik berhasil disimpan!');
     }
 
-    // 3. METHOD BARU: KHUSUS UPDATE PEGAWAI / JURI
+    // update juri
     public function updateLecturer(Request $request): RedirectResponse
     {
         $request->validate([

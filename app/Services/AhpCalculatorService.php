@@ -13,15 +13,12 @@ class AhpCalculatorService
     {
         $globalWeights = $this->calculateGlobalWeights();
     
-        // 1. Hitung Skor CU
         $cuScore = $this->calculateCUScore($registration, $globalWeights);
         
-        // 2. Hitung Skor Juri (GK & BI) - Pastikan TIDAK menghitung ulang CU
         $juriScore = $this->calculateJuriScore($registration, $globalWeights);
         
         $finalScore = $cuScore + $juriScore;
 
-        // Update skor ke database
         if ($registration->stage === 'fakultas') {
             $registration->update(['total_score_fakultas' => $finalScore]);
         } else {
@@ -58,7 +55,6 @@ class AhpCalculatorService
     private function calculateCUScore(Registration $registration, array $globalWeights): float
     {
         $totalCuScore = 0;
-        // Ambil kriteria yang bertipe 'cu' dan merupakan leaf node (tidak punya anak)
         $cuCriterias = Criteria::where('type', 'cu')->doesntHave('children')->get();
 
         foreach ($cuCriterias as $criteria) {
@@ -68,7 +64,6 @@ class AhpCalculatorService
 
             $rawScore = $assessment ? $assessment->score : 0;
 
-            // NORMALISASI: Gunakan max_score dari database, bukan hardcoded 50
             $maxScore = $criteria->max_score > 0 ? $criteria->max_score : 50; 
             $normalized = ($rawScore / $maxScore) * 100;
 
@@ -83,7 +78,6 @@ class AhpCalculatorService
     {
         $totalScore = 0;
 
-        // PERBAIKAN: Tambahkan filter 'whereHas' untuk mengecualikan tipe 'cu'
         $assessments = Assessment::where('registration_id', $registration->id)
             ->whereHas('criteria', function($query) {
                 $query->where('type', '!=', 'cu');

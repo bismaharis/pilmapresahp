@@ -10,7 +10,7 @@ class CriteriaSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. KRITERIA UTAMA (Level 0)
+        // 1. KRITERIA UTAMA
         // CU: 35%, GK: 35%, BI: 30%
         $id_cu = DB::table('criterias')->insertGetId([
             'name' => 'Capaian Unggulan',
@@ -40,7 +40,6 @@ class CriteriaSeeder extends Seeder
         ]);
 
         // 2. SUB-KRITERIA: CAPAIAN UNGGULAN (CU)
-        // Semua bobot lokal 0.143 (rata). Max Score 50 per item (Default)
         $cu_items = [
             'Kompetisi', 'Pengakuan', 'Penghargaan', 'Karir Organisasi',
             'Hasil Karya', 'Pemberdayaan / Aksi Kemanusiaan', 'Kewirausahaan'

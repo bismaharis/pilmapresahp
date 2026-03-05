@@ -30,10 +30,8 @@ class DatabaseSeeder extends Seeder
             PeriodSeeder::class,
         ]);
 
-        // 2. Ambil semua fakultas dari database
         // $faculties = \App\Models\Faculty::all();
 
-        // // 3. Buat Admin Fakultas dan Juri berdasarkan nama fakultas asli
         // foreach ($faculties as $faculty) {
             
         //     // Buat Admin Fakultas
@@ -43,8 +41,7 @@ class DatabaseSeeder extends Seeder
         //         'password' => bcrypt('password'),
         //         'role' => 'admin_fakultas',
         //     ]);
-
-        //     // Buat 2 Juri per Fakultas
+        
         //     for ($i = 1; $i <= 2; $i++) {
         //         $juri = \App\Models\User::create([
         //             'name' => 'Dr. Juri ' . $faculty->name . ' ' . $i,

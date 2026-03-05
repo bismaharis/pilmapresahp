@@ -86,14 +86,13 @@ class TransparencyController extends Controller
         $isUnivJudge = ($role === 'dosen' && $user->lecturer && $user->lecturer->is_univ_judge);
         $userFacultyId = $role === 'dosen' ? $user->lecturer->faculty_id : $user->faculty_id;
 
-        // ATURAN 1: Paksa Stage (Tahap) berdasarkan Hak Akses
         if ($isUnivJudge) {
-            $stage = 'universitas'; // Juri Univ hanya bisa cetak tahap universitas
+            $stage = 'universitas'; 
         } elseif (in_array($role, ['admin_fakultas']) || ($role === 'dosen' && !$isUnivJudge)) {
-            $stage = 'fakultas'; // Juri/Admin Fakultas hanya bisa cetak tahap fakultas
+            $stage = 'fakultas'; 
         }
 
-        // Ambil data yang hanya sudah disubmit dan ada file-nya (Sama seperti filter di index)
+        // Ambil data yang hanya sudah disubmit dan ada file-nya 
         $query = Registration::with(['student.user', 'student.faculty'])
             ->whereIn('status', ['submitted', 'verified', 'approved']) 
             ->whereNotNull('file_gk')
@@ -103,7 +102,6 @@ class TransparencyController extends Controller
         $facultyNameTitle = '';
         $fileNameSlug = '';
 
-        // ATURAN 2: Paksa Filter Fakultas untuk Admin/Juri Fakultas
         if (in_array($role, ['admin_fakultas', 'dosen']) && !$isUnivJudge) {
             $query->whereHas('student', function($q) use ($userFacultyId) {
                 $q->where('faculty_id', $userFacultyId);
@@ -114,7 +112,6 @@ class TransparencyController extends Controller
                 $fileNameSlug = '_' . \Illuminate\Support\Str::slug($faculty->name);
             }
         } 
-        // ATURAN 3: Izinkan Super Admin & Admin Univ menggunakan Filter Dropdown
         else {
             if ($request->filled('faculty_id')) {
                 $query->whereHas('student', function($q) use ($request) {
@@ -131,7 +128,6 @@ class TransparencyController extends Controller
         $scoreColumn = $stage === 'fakultas' ? 'total_score_fakultas' : 'total_score_univ';
         $rankings = $query->orderBy($scoreColumn, 'desc')->get();
 
-        // Pindahkan file pdf.blade.php Anda ke folder transparency/
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('transparency.pdf', compact('rankings', 'stage', 'scoreColumn', 'facultyNameTitle'));
         
         $pdf->setPaper('a4', 'portrait');
@@ -149,7 +145,6 @@ class TransparencyController extends Controller
         $registration = Registration::with(['achievements', 'assessments.criteria', 'assessments.lecturer', 'student.user'])
                             ->findOrFail($id);
 
-        // LOGIKA PROTEKSI (Hanya Boleh Lihat Jika Sesuai Hak Akses)
         if ($role === 'mahasiswa') {
             if ($registration->student->user_id !== $user->id) {
                 abort(403, 'Akses Ditolak: Anda hanya dapat melihat rincian transparansi nilai Anda sendiri.');
