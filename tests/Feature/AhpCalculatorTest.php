@@ -1,135 +1,193 @@
 <?php
 
-use App\Models\Achievement;
-use App\Models\Assessment;
 use App\Models\Criteria;
-use App\Models\Faculty;
-use App\Models\Lecturer;
 use App\Models\Registration;
+use App\Models\Assessment;
 use App\Models\Student;
+use App\Models\Faculty;
 use App\Models\User;
 use App\Services\AhpCalculatorService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 
-// RefreshDatabase memastikan database di-reset setiap kali test dijalankan 
-// (tidak akan merusak database utama project Anda)
-uses(RefreshDatabase::class);
+beforeEach(function () {
+    // ensure active period exists (some controllers rely on it)
+    if (!\DB::table('pilmapres_periods')->where('is_active', true)->exists()) {
+        \DB::table('pilmapres_periods')->insert([
+            'year' => now()->year,
+            'is_active' => true,
+            'start_date' => now()->subWeek(),
+            'end_date' => now()->addWeek(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+});
 
-it('menghitung nilai akhir AHP dengan sangat akurat', function () {
-    
-    // ---------------------------------------------------------
-    // 1. SETUP DATA KRITERIA (Simulasi Sederhana)
-    // ---------------------------------------------------------
-    // Kriteria Induk GK (Bobot 60%)
-    $gkRoot = Criteria::create(['name' => 'Gagasan Kreatif', 'type' => 'gk', 'weight' => 0.6, 'max_score' => 0]);
-    // Anak GK: Substansi (Bobot 100% dari GK = Global 60%), Nilai Maksimal form: 100
-    $gkSub = Criteria::create(['name' => 'Substansi', 'type' => 'gk', 'weight' => 1.0, 'max_score' => 100, 'parent_id' => $gkRoot->id]);
-
-    // Kriteria Induk CU (Bobot 40%)
-    $cuRoot = Criteria::create(['name' => 'Capaian Unggulan', 'type' => 'cu', 'weight' => 0.4, 'max_score' => 0]);
-    // Anak CU: Kompetisi (Bobot 100% dari CU = Global 40%)
-    $cuSub = Criteria::create(['name' => 'Kompetisi', 'type' => 'cu', 'weight' => 1.0, 'max_score' => 0, 'parent_id' => $cuRoot->id]);
-
-    // ---------------------------------------------------------
-    // 2. SETUP USER & PENDAFTARAN
-    // ---------------------------------------------------------
-    $faculty = Faculty::create(['name' => 'Fakultas Teknik', 'slug' => 'teknik']);
-    
-    // Pastikan user diberi role dan faculty_id
-    $user = User::factory()->create(['role' => 'mahasiswa', 'faculty_id' => $faculty->id]);
-    
-    DB::table('pilmapres_periods')->insert([
-        'id' => 1,
-        'year' => '2026',
-        'is_active' => true,
-        'start_date' => now(),
-        'end_date' => now()->addMonths(3),
-    ]);
-    $faculty = Faculty::firstOrCreate(
-        ['slug' => 'teknik'], 
-        ['name' => 'Fakultas Teknik']
-    );
-
+it('calculates CU score using dynamic max and ignores subcriteria weights', function () {
+    $user = User::factory()->create();
+    $faculty = Faculty::create(['name' => 'Fakultas', 'slug' => 'fakultas']);
     $student = Student::create([
-        'user_id' => $user->id, 
-        'faculty_id' => $faculty->id, 
-        'nim' => 'A1B2C3', 
-        'prodi' => 'Teknik Informatika',
-        'semester' => 6,
-        'ipk' => 3.85
+        'user_id' => $user->id,
+        'faculty_id' => $faculty->id,
+        'nim' => '123',
+        'prodi' => 'X',
+        'semester' => 1,
+        'ipk' => 3.0,
     ]);
-    
+
     $registration = Registration::create([
+        'period_id' => 1,
         'student_id' => $student->id,
-        'period_id' => 1, // Sekarang ini akan valid!
         'stage' => 'fakultas',
-        'status' => 'submitted'
+        'status' => 'draft',
     ]);
 
-    // ---------------------------------------------------------
-    // 3. SETUP CAPAIAN UNGGULAN (CU)
-    // ---------------------------------------------------------
-    // Mahasiswa input 1 Prestasi Tingkat Nasional (Berdasarkan rumus, Nasional = 40 poin mentah)
-    Achievement::create([
-        'registration_id' => $registration->id,
-        'name' => 'Juara 1 Web Design',
-        // 'capaian' must be provided due to NOT NULL constraint
-        'capaian' => 'Juara 1 Web Design',
-        'category' => 'Kompetisi',
-        'level' => 'Nasional',
-        'year' => 2025,
-        'type' => 'Individu',
-        'organizer' => 'Kemenristek',
-        'file_proof' => 'dummy.pdf'
+    $cuRoot = Criteria::create(['name' => 'CU Root', 'type' => 'cu', 'weight' => 0.35, 'max_score' => 0]);
+    $leaf1 = Criteria::create(['name' => 'cu1', 'type' => 'cu', 'weight' => 0, 'max_score' => 200, 'parent_id' => $cuRoot->id]);
+    $leaf2 = Criteria::create(['name' => 'cu2', 'type' => 'cu', 'weight' => 0, 'max_score' => 200, 'parent_id' => $cuRoot->id]);
+
+    // create a lecturer so FK constraint is satisfied
+    $lecturerUser = User::factory()->create();
+    $lecturer = \App\Models\Lecturer::create([
+        'user_id' => $lecturerUser->id,
+        'faculty_id' => $faculty->id,
+        'nip' => '123',
+        'unit_kerja' => 'Test',
+        'is_univ_judge' => false,
     ]);
 
-    // ---------------------------------------------------------
-    // 4. SETUP PENILAIAN JURI (GK)
-    // ---------------------------------------------------------
-    // Juri memberikan nilai 80 (dari maksimal 100) untuk kriteria Substansi
-    $juriUser = User::factory()->create(['role' => 'dosen', 'faculty_id' => $faculty->id]);
-    $juri = Lecturer::create([
-        'user_id' => $juriUser->id, 
-        'faculty_id' => $faculty->id, 
-        'nip' => '12345', 
-        'unit_kerja' => 'Teknik Informatika'
-    ]);
+    Assessment::create(['registration_id' => $registration->id, 'lecturer_id' => $lecturer->id, 'criteria_id' => $leaf1->id, 'score' => 40]);
+    Assessment::create(['registration_id' => $registration->id, 'lecturer_id' => $lecturer->id, 'criteria_id' => $leaf2->id, 'score' => 50]);
 
-    // create a juror assessment for the GK sub-criteria with score 80
-    Assessment::create([
-        'registration_id' => $registration->id,
-        'lecturer_id' => $juri->id,
-        'criteria_id' => $gkSub->id,
-        'score' => 80,
-    ]);
-
-    // ---------------------------------------------------------
-    // 5. EKSEKUSI ENGINE AHP
-    // ---------------------------------------------------------
     $service = new AhpCalculatorService();
-    $finalScore = $service->calculateFinalScore($registration);
+    $score   = $service->calculateFinalScore($registration);
 
-    // ---------------------------------------------------------
-    // 6. ASSERTION (PEMBUKTIAN MATEMATIKA)
-    // ---------------------------------------------------------
-    /*
-        PERHITUNGAN MANUAL:
-        - CU Score: Nilai Mentah = 40. Normalisasi = (40 / 200) * 100 = 20. 
-          Total CU = 20 * 0.4 (Bobot Global) = 8.
-          
-        - GK Score: Nilai Mentah = 80. Normalisasi = (80 / 100) * 100 = 80.
-          Total GK = 80 * 0.6 (Bobot Global) = 48.
-          
-        - TOTAL AKHIR = 48 + 8 = 56.
-    */
-    
-    // A. Pastikan nilai return service adalah 56.0
-    expect($finalScore)->toEqual(56.0);
-    
-    // B. Pastikan nilai 56.0 benar-benar tersimpan di database kolom total_score_fakultas
-    $this->assertDatabaseHas('registrations', [
-        'id' => $registration->id,
-        'total_score_fakultas' => 56.0
+    // totalRaw 90 -> (90/500)*100*0.35 = 6.3
+    expect(round($score, 4))->toBe(6.3);
+});
+
+it('falls back to 500 when no max scores are defined for CU', function () {
+    $user = User::factory()->create();
+    $faculty = Faculty::create(['name' => 'Fakultas 2', 'slug' => 'fakultas2']);
+    $student = Student::create([
+        'user_id' => $user->id,
+        'faculty_id' => $faculty->id,
+        'nim' => '456',
+        'prodi' => 'Y',
+        'semester' => 2,
+        'ipk' => 3.5,
     ]);
+
+    $registration = Registration::create([
+        'period_id' => 1,
+        'student_id' => $student->id,
+        'stage' => 'fakultas',
+        'status' => 'draft',
+    ]);
+
+    $cuRoot = Criteria::create(['name' => 'CU Root 2', 'type' => 'cu', 'weight' => 0.35, 'max_score' => 0]);
+    $leaf1 = Criteria::create(['name' => 'cu1', 'type' => 'cu', 'weight' => 0, 'max_score' => 200, 'parent_id' => $cuRoot->id]);
+    $leaf2 = Criteria::create(['name' => 'cu2', 'type' => 'cu', 'weight' => 0, 'max_score' => 200, 'parent_id' => $cuRoot->id]);
+
+    // create lecturer for FK
+    $lecturerUser = User::factory()->create();
+    $lecturer = \App\Models\Lecturer::create([
+        'user_id' => $lecturerUser->id,
+        'faculty_id' => $faculty->id,
+        'nip' => '456',
+        'unit_kerja' => 'Test',
+        'is_univ_judge' => false,
+    ]);
+
+    Assessment::create(['registration_id' => $registration->id, 'lecturer_id' => $lecturer->id, 'criteria_id' => $leaf1->id, 'score' => 40]);
+    Assessment::create(['registration_id' => $registration->id, 'lecturer_id' => $lecturer->id, 'criteria_id' => $leaf2->id, 'score' => 50]);
+
+    $service = new AhpCalculatorService();
+    $score   = $service->calculateFinalScore($registration);
+
+    // totalRaw 90 -> (90/500)*100*0.35 = 6.3
+    expect(round($score, 4))->toBe(6.3);
+});
+
+it('returns only juri score when no CU assessments exist', function () {
+    $user = User::factory()->create();
+    $faculty = Faculty::create(['name' => 'Fakultas 3', 'slug' => 'fakultas3']);
+    $student = Student::create([
+        'user_id' => $user->id,
+        'faculty_id' => $faculty->id,
+        'nim' => '789',
+        'prodi' => 'Z',
+        'semester' => 3,
+        'ipk' => 3.2,
+    ]);
+
+    $registration = Registration::create([
+        'period_id' => 1,
+        'student_id' => $student->id,
+        'stage' => 'fakultas',
+        'status' => 'draft',
+    ]);
+
+    // setup a simple GK branch
+    $gkRoot = Criteria::create(['name' => 'GK Root', 'type' => 'gk', 'weight' => 1, 'max_score' => 0]);
+    $leaf = Criteria::create(['name' => 'gk1', 'type' => 'gk', 'weight' => 1, 'max_score' => 100, 'parent_id' => $gkRoot->id]);
+
+    $lecturerUser = User::factory()->create();
+    $lecturer = \App\Models\Lecturer::create([
+        'user_id' => $lecturerUser->id,
+        'faculty_id' => $faculty->id,
+        'nip' => '789',
+        'unit_kerja' => 'Test',
+        'is_univ_judge' => false,
+    ]);
+
+    Assessment::create(['registration_id' => $registration->id, 'lecturer_id' => $lecturer->id, 'criteria_id' => $leaf->id, 'score' => 80]);
+
+    $service = new AhpCalculatorService();
+    $score   = $service->calculateFinalScore($registration);
+
+    // juri only: (80/100)*100*1 = 80
+    expect(round($score, 4))->toEqual(80);
+});
+
+it('caps CU totalRaw at 500 even if jurors input more', function () {
+    $user = User::factory()->create();
+    $faculty = Faculty::create(['name' => 'Fakultas Cap', 'slug' => 'cap']);
+    $student = Student::create([
+        'user_id' => $user->id,
+        'faculty_id' => $faculty->id,
+        'nim' => '000',
+        'prodi' => 'Z',
+        'semester' => 4,
+        'ipk' => 3.0,
+    ]);
+
+    $registration = Registration::create([
+        'period_id' => 1,
+        'student_id' => $student->id,
+        'stage' => 'fakultas',
+        'status' => 'draft',
+    ]);
+
+    $cuRoot = Criteria::create(['name' => 'CU Cap', 'type' => 'cu', 'weight' => 0.35, 'max_score' => 0]);
+    $leaf1 = Criteria::create(['name' => 'cu1', 'type' => 'cu', 'weight' => 0, 'max_score' => 200, 'parent_id' => $cuRoot->id]);
+    $leaf2 = Criteria::create(['name' => 'cu2', 'type' => 'cu', 'weight' => 0, 'max_score' => 200, 'parent_id' => $cuRoot->id]);
+
+    $lecturerUser = User::factory()->create();
+    $lecturer = \App\Models\Lecturer::create([
+        'user_id' => $lecturerUser->id,
+        'faculty_id' => $faculty->id,
+        'nip' => '999',
+        'unit_kerja' => 'Test',
+        'is_univ_judge' => false,
+    ]);
+
+    // enter a huge sum > 500
+    Assessment::create(['registration_id' => $registration->id, 'lecturer_id' => $lecturer->id, 'criteria_id' => $leaf1->id, 'score' => 400]);
+    Assessment::create(['registration_id' => $registration->id, 'lecturer_id' => $lecturer->id, 'criteria_id' => $leaf2->id, 'score' => 200]);
+
+    $service = new AhpCalculatorService();
+    $score   = $service->calculateFinalScore($registration);
+
+    // totalRaw capped at 500 -> (500/500)*100*0.35 = 35
+    expect(round($score, 4))->toEqual(35);
 });

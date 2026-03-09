@@ -24,6 +24,12 @@ class AhpSettingsService
             throw new Exception("Bobot harus antara 0% sampai 100%");
         }
 
+        // prevent editing weight of CU subcriteria (they are always 0)
+        $criteria = $this->repository->findById($id);
+        if ($criteria && $criteria->type === 'cu' && $criteria->parent_id !== null) {
+            throw new Exception("Bobot tidak boleh diubah pada sub-kriteria CU");
+        }
+
         $updated = $this->repository->update($id, [
             'weight' => $decimalWeight
         ]);

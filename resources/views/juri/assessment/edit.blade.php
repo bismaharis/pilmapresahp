@@ -127,9 +127,16 @@
                                                     <div class="mb-6 border border-gray-300 rounded-lg overflow-hidden shadow-sm">
                                                         <div class="bg-gray-200 px-4 py-3 font-bold flex justify-between items-center border-b border-gray-300">
                                                             <span class="text-gray-800">{{ $kategori->name }}</span>
-                                                            <span class="text-sm bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full shadow-inner border border-yellow-300">
-                                                                Total Skor Kategori: <span id="total-{{ $kategori->id }}" class="text-lg font-black">0.00</span>
-                                                            </span>
+                                                            <div class="flex items-center gap-3">
+                                                                @if(isset($existingScores[$kategori->id]) && $existingScores[$kategori->id] > 0)
+                                                                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded border border-blue-200 font-semibold">
+                                                                        Tersimpan: {{ $existingScores[$kategori->id] }}
+                                                                    </span>
+                                                                @endif
+                                                                <span class="text-sm bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full shadow-inner border border-yellow-300">
+                                                                    Total Skor Kategori: <span id="total-{{ $kategori->id }}" class="text-lg font-black">0.00</span>
+                                                                </span>
+                                                            </div>
                                                         </div>
 
                                                         @if($achievements->isEmpty())
@@ -164,13 +171,33 @@
                                                                             </td>
                                                                             <td class="px-4 py-4 align-middle">
                                                                                 <div class="flex flex-col items-center">
-                                                                                    <span class="text-[10px] font-bold text-red-500 mb-1 tracking-wider uppercase">Max: 50</span>
+                                                                                    <span class="text-[10px] font-bold text-red-500 mb-1 tracking-wider uppercase">Max: {{ $kategori->max_score }}</span>
                                                                                     
                                                                                     <input type="number" name="achievement_scores[{{ $ach->id }}]" 
-                                                                                           value="{{ old('achievement_scores.'.$ach->id, $ach->score ?? 0) }}" 
+                                                                                           value="{{ old('achievement_scores.'.$ach->id, 0) }}" 
                                                                                            min="0" max="50" step="0.01" 
                                                                                            class="w-full text-center px-2 py-2 border-2 border-solid border-gray-300 rounded-md text-gray-900 font-bold text-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-inner cu-input-{{ $kategori->id }}"
                                                                                            oninput="calculateTotalCU({{ $kategori->id }})">
+
+                                                                                    {{-- Rekomendasi nilai berdasarkan tingkat sertifikat --}}
+                                                                                    @php
+                                                                                        $levelRaw = strtolower(trim($ach->level ?? ''));
+                                                                                        $rekomendasiMap = [
+                                                                                            'perguruan tinggi' => ['label' => 'Perguruan Tinggi', 'range' => '0 – 10', 'color' => 'bg-gray-100 text-gray-600 border-gray-300'],
+                                                                                            'provinsi'         => ['label' => 'Provinsi',         'range' => '10 – 20', 'color' => 'bg-blue-50 text-blue-700 border-blue-200'],
+                                                                                            'nasional'         => ['label' => 'Nasional',         'range' => '20 – 30', 'color' => 'bg-green-50 text-green-700 border-green-200'],
+                                                                                            'regional'         => ['label' => 'Regional',         'range' => '30 – 40', 'color' => 'bg-yellow-50 text-yellow-700 border-yellow-300'],
+                                                                                            'internasional'    => ['label' => 'Internasional',    'range' => '40 – 50', 'color' => 'bg-purple-50 text-purple-700 border-purple-200'],
+                                                                                        ];
+                                                                                        $rekomendasi = $rekomendasiMap[$levelRaw] ?? null;
+                                                                                    @endphp
+
+                                                                                    @if($rekomendasi)
+                                                                                        <div class="mt-2 w-full text-center px-2 py-1.5 rounded border {{ $rekomendasi['color'] }} text-[10px] leading-tight">
+                                                                                            <span class="font-bold block uppercase tracking-wide">💡 Rekomendasi</span>
+                                                                                            <span class="font-black text-sm">{{ $rekomendasi['range'] }}</span>
+                                                                                        </div>
+                                                                                    @endif
                                                                                 </div>
                                                                             </td>
                                                                         </tr>

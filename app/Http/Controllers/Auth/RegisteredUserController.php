@@ -39,7 +39,10 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'faculty_id' => ['required', 'exists:faculties,id'],
         ]);
+
+        $facId = (int) $request->faculty_id;
 
         $fakultasProdi = [
             1 => ['Teknik Informatika', 'Teknik Sipil', 'Teknik Elektro'], // Teknik
@@ -53,8 +56,7 @@ class RegisteredUserController extends Controller
             9 => ['Pendidikan Dokter', 'Farmasi'], // Kedokteran
         ];
 
-        $facId = array_rand($fakultasProdi);
-        $prodi = $faker->randomElement($fakultasProdi[$facId]);
+        $prodi = $fakultasProdi[$facId][array_rand($fakultasProdi[$facId] ?? ['Umum'])] ?? 'Umum';
 
         return DB::transaction(function () use ($request, $faker, $facId, $prodi) {
             $user = User::create([
@@ -62,7 +64,7 @@ class RegisteredUserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => 'mahasiswa',
-                'faculty_id' => $facId, 
+                'faculty_id' => $facId,
                 'email_verified_at' => now(),
             ]);
 
@@ -80,8 +82,22 @@ class RegisteredUserController extends Controller
                 'updated_at' => now(),
             ]);
 
+            $period = DB::table('pilmapres_periods')->where('is_active', true)->first();
+            if (! $period) {
+                $periodId = DB::table('pilmapres_periods')->insertGetId([
+                    'year' => now()->year,
+                    'is_active' => true,
+                    'start_date' => now(),
+                    'end_date' => now()->addMonths(3),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                $periodId = $period->id;
+            }
+
             DB::table('registrations')->insert([
-                'period_id' => 1,
+                'period_id' => $periodId,
                 'student_id' => $studentId,
                 'stage' => 'fakultas',
                 'status' => 'submitted',

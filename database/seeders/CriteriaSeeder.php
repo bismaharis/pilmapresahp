@@ -49,8 +49,9 @@ class CriteriaSeeder extends Seeder
             DB::table('criterias')->insert([
                 'name' => $item,
                 'type' => 'cu',
-                'weight' => 1/7, 
-                'max_score' => 50,
+                'weight' => 0, // sub‑kriteria CU tidak memiliki bobot
+                // setiap kategori boleh memuat hingga 4 sertifikat × 50 poin
+                'max_score' => 200,
                 'parent_id' => $id_cu,
                 'created_at' => now(), 'updated_at' => now()
             ]);

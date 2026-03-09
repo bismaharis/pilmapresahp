@@ -141,9 +141,14 @@ class TransparencyController extends Controller
         $user = Auth::user();
         $role = $user->role;
         $stage = $request->query('stage', 'fakultas');
-        
-        $registration = Registration::with(['achievements', 'assessments.criteria', 'assessments.lecturer', 'student.user'])
-                            ->findOrFail($id);
+
+        $registration = Registration::with([
+            'achievements',
+            'assessments.criteria',
+            'assessments.lecturer.user',
+            'student.user',
+            'student.faculty',
+        ])->findOrFail($id);
 
         if ($role === 'mahasiswa') {
             if ($registration->student->user_id !== $user->id) {
@@ -151,7 +156,6 @@ class TransparencyController extends Controller
             }
         } elseif (in_array($role, ['admin_fakultas', 'dosen'])) {
             $isUnivJudge = ($role === 'dosen' && $user->lecturer && $user->lecturer->is_univ_judge);
-            
             $userFacultyId = $role === 'dosen' ? $user->lecturer->faculty_id : $user->faculty_id;
 
             if (!$isUnivJudge && $registration->student->faculty_id !== $userFacultyId) {
@@ -160,9 +164,36 @@ class TransparencyController extends Controller
         }
 
         $criterias = Criteria::whereNull('parent_id')
-                        ->with(['children.children.children']) 
-                        ->get();
+            ->with(['children.children.children'])
+            ->get();
 
-        return view('transparency.show', compact('registration', 'criterias', 'stage', 'role'));
+        // Data per-juri hanya disiapkan untuk role non-mahasiswa
+        $assessmentsByLecturer = collect();
+        $allJuriDone = false;
+
+        if ($role !== 'mahasiswa') {
+            // Kelompokkan: [ lecturer_id => [ criteria_id => assessment ] ]
+            $assessmentsByLecturer = $registration->assessments
+                ->groupBy('lecturer_id')
+                ->map(fn($items) => $items->keyBy('criteria_id'));
+
+            // Cek apakah semua juri yang diharapkan sudah menilai
+            $expectedJuriQuery = \App\Models\Lecturer::query();
+            if ($registration->stage === 'universitas') {
+                $expectedJuriQuery->where('is_univ_judge', true);
+            } else {
+                $expectedJuriQuery->where('faculty_id', $registration->student->faculty_id)
+                                  ->where('is_univ_judge', false);
+            }
+            $expectedJuriCount = $expectedJuriQuery->count();
+            $juriYangSudahNilai = $assessmentsByLecturer->count();
+
+            $allJuriDone = $expectedJuriCount > 0 && $juriYangSudahNilai >= $expectedJuriCount;
+        }
+
+        return view('transparency.show', compact(
+            'registration', 'criterias', 'stage', 'role',
+            'assessmentsByLecturer', 'allJuriDone'
+        ));
     }
 }

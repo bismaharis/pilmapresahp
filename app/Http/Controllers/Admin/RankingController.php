@@ -58,14 +58,12 @@ class RankingController extends Controller
         //     ->where('status', '!=', 'draft')
         //     ->where('stage', $stage);
 
-        // // 1. Jika Admin Fakultas, PAKSA hanya lihat fakultasnya sendiri
         // if ($admin->role === 'admin_fakultas') {
         //     $query->whereHas('student', function($q) use ($admin) {
         //         // Asumsi: akun Admin memiliki field faculty_id di tabel users
         //         $q->where('faculty_id', $admin->faculty_id);
         //     });
         // } 
-        // // 2. Jika Super Admin / Admin Univ, izinkan pakai Dropdown Filter
         // else {
         //     if ($request->filled('faculty_id')) {
         //         $query->whereHas('student', function($q) use ($request) {
