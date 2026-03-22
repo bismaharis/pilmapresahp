@@ -43,23 +43,31 @@
         </div>
     </body> --}}
 
-    <body class="font-sans antialiased bg-gray-200 overflow-hidden" x-data="{ sidebarOpen: true }">
-        <div class="flex h-screen w-full">
+    <body class="font-sans antialiased bg-gray-200 overflow-hidden" x-data="{ sidebarOpen: false }">
+        <div class="flex h-screen w-full relative">
             
+            <!-- Overlay untuk mobile -->
+            <div 
+                @click="sidebarOpen = false"
+                :class="sidebarOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'"
+                class="fixed inset-0 bg-black transition-opacity duration-300 z-10 md:hidden">
+            </div>
+
             @include('layouts.sidebar')
 
             <div class="flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300">
                 
-                <header class="h-16 bg-gray-200 flex items-center justify-between px-6 border-b border-gray-300">
-                    <div class="flex items-center">
-                        <button @click="sidebarOpen = !sidebarOpen" class="bg-cyan-500 text-white p-2 rounded focus:outline-none hover:bg-cyan-600 transition">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <!-- Header -->
+                <header class="h-14 sm:h-16 bg-gray-200 flex items-center justify-between px-3 sm:px-6 border-b border-gray-300">
+                    <div class="flex items-center flex-1 min-w-0">
+                        <button @click="sidebarOpen = !sidebarOpen" class="bg-cyan-500 text-white p-2 rounded focus:outline-none hover:bg-cyan-600 transition flex-shrink-0">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
                         </button>
                         
                         @if (isset($header))
-                            <div class="ml-4 text-2xl font-light text-gray-500">
+                            <div class="ml-2 sm:ml-4 text-lg sm:text-2xl font-light text-gray-500 truncate">
                                 {{ $header }}
                             </div>
                         @endif
@@ -68,17 +76,18 @@
                     <div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-red-500 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <button type="submit" class="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-semibold text-gray-500 hover:text-red-500 transition flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                                 </svg>
-                                Keluar
+                                <span class="hidden sm:inline">Keluar</span>
                             </button>
                         </form>
                     </div>
                 </header>
 
-                <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-6">
+                <!-- Main Content -->
+                <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 p-3 sm:p-6">
                     {{ $slot }}
                 </main>
 

@@ -18,20 +18,21 @@
         </div>
         @endif --}}
 
-        <div class="bg-white shadow-sm rounded-lg p-6">
-            <h2 class="text-xl font-bold mb-4 text-gray-800">Leaderboard Peserta</h2>
+        <div class="bg-white shadow-sm rounded-lg p-4 md:p-6">
+            <h2 class="text-lg md:text-xl font-bold mb-4 text-gray-800">Leaderboard Peserta</h2>
 
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b pb-4 gap-4">
-                <div class="flex space-x-2">
-                    <a href="{{ route('transparency.index', ['stage' => 'fakultas']) }}" class="px-4 py-2 rounded-md font-bold {{ $stage == 'fakultas' ? 'bg-cyan-500 text-white shadow' : 'text-gray-500 hover:bg-gray-100' }}">Tingkat Fakultas</a>
-                    <a href="{{ route('transparency.index', ['stage' => 'universitas']) }}" class="px-4 py-2 rounded-md font-bold {{ $stage == 'universitas' ? 'bg-cyan-500 text-white shadow' : 'text-gray-500 hover:bg-gray-100' }}">Tingkat Universitas</a>
+            <div class="flex flex-col gap-4 md:gap-0 md:flex-row md:justify-between md:items-center mb-4 border-b pb-4">
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('transparency.index', ['stage' => 'fakultas']) }}" class="px-3 md:px-4 py-2 rounded-md text-sm md:text-base font-bold {{ $stage == 'fakultas' ? 'bg-cyan-500 text-white shadow' : 'text-gray-500 hover:bg-gray-100' }}">Tingkat Fakultas</a>
+                    <a href="{{ route('transparency.index', ['stage' => 'universitas']) }}" class="px-3 md:px-4 py-2 rounded-md text-sm md:text-base font-bold {{ $stage == 'universitas' ? 'bg-cyan-500 text-white shadow' : 'text-gray-500 hover:bg-gray-100' }}">Tingkat Universitas</a>
                 </div>
 
                 @if($role !== 'mahasiswa')
                 <a href="{{ route('transparency.pdf', ['stage' => $stage, 'faculty_id' => request('faculty_id')]) }}" target="_blank"
-                   class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest hover:bg-red-700 shadow-sm transition shrink-0">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Cetak Leaderboard (PDF)
+                   class="inline-flex items-center justify-center px-3 md:px-4 py-2 bg-red-600 border border-transparent rounded-md font-bold text-xs uppercase tracking-widest text-white hover:bg-red-700 shadow-sm transition flex-shrink-0 gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span class="hidden md:inline">Cetak Leaderboard (PDF)</span>
+                    <span class="inline md:hidden">Cetak PDF</span>
                 </a>
                 @endif
             </div>
@@ -46,17 +47,17 @@
             @endphp
 
             @if($isUnivLevel)
-            <div class="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center space-x-3">
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                    <span class="font-bold text-gray-700">Filter Peserta:</span>
+            <div class="mb-6 bg-white p-3 md:p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col gap-3">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    <span class="font-bold text-gray-700 text-sm md:text-base">Filter Peserta:</span>
                 </div>
                 
-                <form method="GET" action="{{ url()->current() }}" class="w-full sm:w-1/3">
+                <form method="GET" action="{{ url()->current() }}" class="w-full">
                     @if(request('stage'))
                         <input type="hidden" name="stage" value="{{ request('stage') }}">
                     @endif
-                    <select name="faculty_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 text-sm font-semibold text-gray-700 transition" onchange="this.form.submit()">
+                    <select name="faculty_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 text-xs md:text-sm font-semibold text-gray-700 transition" onchange="this.form.submit()">
                         <option value="">-- Tampilkan Semua Fakultas --</option>
                         @foreach($faculties as $faculty)
                             <option value="{{ $faculty->id }}" {{ request('faculty_id') == $faculty->id ? 'selected' : '' }}>
@@ -67,30 +68,32 @@
                 </form>
             </div>
             @endif
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+            <div class="overflow-x-auto -mx-4 md:-mx-0">
+                <table class="w-full text-left border-collapse text-xs md:text-sm">
                     <thead>
                         <tr class="bg-gray-100 border-b-2 border-gray-300">
-                            <th class="p-3 text-center w-16">Rank</th>
-                            <th class="p-3">Nama Mahasiswa</th>
-                            <th class="p-3 text-center">Program Studi</th>
-                            <th class="p-3 text-center">Nilai Rata-rata AHP</th>
-                            <th class="p-3 text-center">Rincian Transparansi</th>
+                            <th class="p-2 md:p-3 text-center w-12 md:w-16">Rank</th>
+                            <th class="p-2 md:p-3">Nama Mahasiswa</th>
+                            <th class="p-2 md:p-3 text-center hidden md:table-cell">Program Studi</th>
+                            <th class="p-2 md:p-3 text-center">Nilai Rata-rata AHP</th>
+                            <th class="p-2 md:p-3 text-center">Rincian Transparansi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($rankings as $index => $rank)
-                            <tr class="border-b hover:bg-gray-50 {{ ($role === 'mahasiswa' && $rank->student_id == $user->student->id) ? 'bg-yellow-50 font-bold border-l-4 border-yellow-400' : '' }}">
-                                <td class="p-3 text-center text-lg">{{ $index + 1 }}</td>
-                                <td class="p-3 flex items-center space-x-3">
-                                    <img src="{{ $rank->student->user->photo ? asset('storage/' . $rank->student->user->photo) : 'https://ui-avatars.com/api/?name='.urlencode($rank->student->user->name) }}" class="w-8 h-8 rounded-full object-cover shadow-sm">
-                                    <span>{{ $rank->student->user->name }}</span>
+                            <tr class="border-b hover:bg-gray-50 text-xs md:text-sm {{ ($role === 'mahasiswa' && $rank->student_id == $user->student->id) ? 'bg-yellow-50 font-bold border-l-4 border-yellow-400' : '' }}">
+                                <td class="p-2 md:p-3 text-center font-semibold">{{ $index + 1 }}</td>
+                                <td class="p-2 md:p-3">
+                                    <div class="flex items-center space-x-2">
+                                        <img src="{{ $rank->student->user->photo ? asset('storage/' . $rank->student->user->photo) : 'https://ui-avatars.com/api/?name='.urlencode($rank->student->user->name) }}" class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover shadow-sm flex-shrink-0">
+                                        <span class="truncate">{{ $rank->student->user->name }}</span>
+                                    </div>
                                 </td>
-                                <td class="p-3 text-center">{{ $rank->student->prodi }}</td>
-                                <td class="p-3 text-center text-blue-600 text-lg font-bold">
+                                <td class="p-2 md:p-3 text-center hidden md:table-cell">{{ $rank->student->prodi }}</td>
+                                <td class="p-2 md:p-3 text-center text-blue-600 text-sm md:text-base font-bold">
                                     {{ number_format($stage == 'fakultas' ? $rank->total_score_fakultas : $rank->total_score_univ, 2) }}
                                 </td>
-                                <td class="p-3 text-center">
+                                <td class="p-2 md:p-3 text-center">
                                     @php
                                         // LOGIKA TOMBOL: Menyala jika mhs itu diri sendiri, ATAU jika user adalah admin/juri
                                         $canView = false;

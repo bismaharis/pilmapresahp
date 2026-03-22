@@ -53,7 +53,7 @@
         </div>
 
         <div>
-            <x-input-label for="faculty_id" :value="__('Pilih Fakultas (Khusus Admin/Panitia)')" />
+            {{-- <x-input-label for="faculty_id" :value="__('Pilih Fakultas (Khusus Admin/Panitia)')" />
             <select name="faculty_id" id="faculty_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                 <option value="">-- Tidak Memilih Fakultas --</option>
                 @foreach($faculties as $faculty)
@@ -61,8 +61,8 @@
                         {{ $faculty->name }}
                     </option>
                 @endforeach
-            </select>
-        </div>
+            </select> --}}
+        </div> 
 
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>

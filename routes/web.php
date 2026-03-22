@@ -1,9 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Admin\CriteriaController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -55,7 +54,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])
         Route::get('/delegation/juries', [\App\Http\Controllers\SuperAdmin\JuryDelegationController::class, 'index'])->name('delegation.juries.index');
         Route::patch('/delegation/juries/{lecturer}/toggle', [\App\Http\Controllers\SuperAdmin\JuryDelegationController::class, 'toggle'])->name('delegation.juries.toggle');
 
-});
+    });
 
 Route::middleware(['auth', 'verified', 'role:super_admin,admin_univ,admin_fakultas'])
     ->prefix('admin')
@@ -70,7 +69,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_univ,admin_fakult
         Route::get('/ranking/pdf', [\App\Http\Controllers\Admin\RankingController::class, 'exportPdf'])->name('ranking.pdf');
         Route::post('/ranking/{registration}/delegate', [\App\Http\Controllers\Admin\RankingController::class, 'delegate'])->name('ranking.delegate');
         Route::patch('/ranking/{registration}/cancel-delegate', [\App\Http\Controllers\Admin\RankingController::class, 'cancelDelegate'])->name('ranking.cancel_delegate');
-        
+
         Route::get('/juries', [\App\Http\Controllers\Admin\JuriController::class, 'index'])->name('juries.index');
         Route::post('/juries', [\App\Http\Controllers\Admin\JuriController::class, 'store'])->name('juries.store');
         Route::delete('/juries/{user}', [\App\Http\Controllers\Admin\JuriController::class, 'destroy'])->name('juries.destroy');
@@ -81,7 +80,15 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_univ,admin_fakult
         Route::post('/participants', [\App\Http\Controllers\Admin\ParticipantController::class, 'store'])->name('participants.store');
         Route::put('/participants/{user}', [\App\Http\Controllers\Admin\ParticipantController::class, 'update'])->name('participants.update');
         Route::delete('/participants/{user}', [\App\Http\Controllers\Admin\ParticipantController::class, 'destroy'])->name('participants.destroy');
-});
+
+        Route::get('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'index'])->name('periods.index');
+        Route::post('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'store'])->name('periods.store');
+        Route::put('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'update'])->name('periods.update');
+        Route::delete('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'destroy'])->name('periods.destroy');
+
+        Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+    });
 
 Route::middleware(['auth', 'verified', 'role:dosen'])
     ->prefix('juri')
@@ -90,7 +97,7 @@ Route::middleware(['auth', 'verified', 'role:dosen'])
         Route::get('/assessments', [\App\Http\Controllers\Juri\AssessmentController::class, 'index'])->name('assessments.index');
         Route::get('/assessments/{registration}/edit', [\App\Http\Controllers\Juri\AssessmentController::class, 'edit'])->name('assessments.edit');
         Route::put('/assessments/{registration}', [\App\Http\Controllers\Juri\AssessmentController::class, 'update'])->name('assessments.update');
-});
+    });
 
 Route::middleware(['auth', 'verified', 'role:mahasiswa'])
     ->prefix('student')
@@ -98,18 +105,19 @@ Route::middleware(['auth', 'verified', 'role:mahasiswa'])
     ->group(function () {
         Route::get('/registration', [\App\Http\Controllers\Student\RegistrationController::class, 'index'])->name('registration.index');
         Route::put('/registration', [\App\Http\Controllers\Student\RegistrationController::class, 'update'])->name('registration.update');
-        
+
         Route::get('/achievements', [\App\Http\Controllers\Student\AchievementController::class, 'index'])->name('achievements.index');
         Route::post('/achievements', [\App\Http\Controllers\Student\AchievementController::class, 'store'])->name('achievements.store');
         Route::delete('/achievements/{id}', [\App\Http\Controllers\Student\AchievementController::class, 'destroy'])->name('achievements.destroy');
         // Route::get('/transparency', [\App\Http\Controllers\Student\TransparencyController::class, 'index'])->name('transparency.index');
         // Route::get('/transparency/detail', [\App\Http\Controllers\Student\TransparencyController::class, 'show'])->name('transparency.show');
-});
+    });
 
 Route::get('/force-logout', function () {
     \Illuminate\Support\Facades\Auth::logout();
     session()->invalidate();
     session()->regenerateToken();
+
     return redirect('/');
 });
 

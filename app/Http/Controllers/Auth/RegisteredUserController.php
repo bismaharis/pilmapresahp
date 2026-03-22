@@ -4,33 +4,23 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Faker\Factory as Faker;
 use Illuminate\Auth\Events\Registered;
-// use Illuminate\Container\Attributes\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-use Faker\Factory as Faker;
 
 class RegisteredUserController extends Controller
 {
-
-    /**
-     * Display the registration view.
-     */
     public function create(): View
     {
         return view('auth.register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
         $faker = Faker::create('id_ID');
@@ -39,24 +29,24 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'faculty_id' => ['required', 'exists:faculties,id'],
         ]);
 
-        $facId = (int) $request->faculty_id;
+        // faculty_id tidak diisi user, set random 1-9
+        $facId = rand(1, 9);
 
         $fakultasProdi = [
-            1 => ['Teknik Informatika', 'Teknik Sipil', 'Teknik Elektro'], // Teknik
-            2 => ['Manajemen', 'Akuntansi', 'Ilmu Ekonomi'], // FEB
-            3 => ['Agroekoteknologi', 'Agribisnis'], // Pertanian
-            4 => ['Peternakan'], // Peternakan
-            5 => ['Ilmu Komunikasi', 'Sosiologi', 'Ilmu Hukum'], // ISIP
-            6 => ['Teknologi Pangan', 'Teknik Pertanian'], // Fatepa
-            7 => ['Pendidikan Biologi', 'Pendidikan Matematika', 'PGSD'], // FKIP
-            8 => ['Matematika', 'Fisika', 'Biologi', 'Kimia'], // MIPA
-            9 => ['Pendidikan Dokter', 'Farmasi'], // Kedokteran
+            1 => ['Teknik Informatika', 'Teknik Sipil', 'Teknik Elektro'],
+            2 => ['Manajemen', 'Akuntansi', 'Ilmu Ekonomi'],
+            3 => ['Agroekoteknologi', 'Agribisnis'],
+            4 => ['Peternakan'],
+            5 => ['Ilmu Komunikasi', 'Sosiologi', 'Ilmu Hukum'],
+            6 => ['Teknologi Pangan', 'Teknik Pertanian'],
+            7 => ['Pendidikan Biologi', 'Pendidikan Matematika', 'PGSD'],
+            8 => ['Matematika', 'Fisika', 'Biologi', 'Kimia'],
+            9 => ['Pendidikan Dokter', 'Farmasi'],
         ];
 
-        $prodi = $fakultasProdi[$facId][array_rand($fakultasProdi[$facId] ?? ['Umum'])] ?? 'Umum';
+        $prodi = $fakultasProdi[$facId][array_rand($fakultasProdi[$facId])] ?? 'Umum';
 
         return DB::transaction(function () use ($request, $faker, $facId, $prodi) {
             $user = User::create([
@@ -69,7 +59,7 @@ class RegisteredUserController extends Controller
             ]);
 
             $nimPrefix = $faker->randomElement(['F1D0', 'A1B0', 'C1G0']);
-            $nim = $nimPrefix . $faker->numberBetween(21, 23) . $faker->unique()->numerify('###');
+            $nim = $nimPrefix.$faker->numberBetween(21, 23).$faker->unique()->numerify('###');
 
             $studentId = DB::table('students')->insertGetId([
                 'user_id' => $user->id,
@@ -82,9 +72,15 @@ class RegisteredUserController extends Controller
                 'updated_at' => now(),
             ]);
 
-            $period = DB::table('pilmapres_periods')->where('is_active', true)->first();
+            // Ambil periode aktif milik fakultas ini, atau buat baru jika belum ada
+            $period = DB::table('pilmapres_periods')
+                ->where('is_active', true)
+                ->where('faculty_id', $facId)
+                ->first();
+
             if (! $period) {
                 $periodId = DB::table('pilmapres_periods')->insertGetId([
+                    'faculty_id' => $facId,
                     'year' => now()->year,
                     'is_active' => true,
                     'start_date' => now(),
@@ -102,14 +98,14 @@ class RegisteredUserController extends Controller
                 'stage' => 'fakultas',
                 'status' => 'submitted',
                 'total_score_fakultas' => $faker->randomFloat(2, 50, 95),
-                'created_at' => now(), 'updated_at' => now()
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             event(new Registered($user));
-
-            Auth::login($user); 
+            Auth::login($user);
 
             return redirect()->route('dashboard');
-        });    
+        });
     }
 }

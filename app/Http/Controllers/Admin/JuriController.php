@@ -7,35 +7,54 @@ use App\Models\Faculty;
 use App\Models\Lecturer;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class JuriController extends Controller
 {
-    // public function index()
-    // {
-    //     // Ambil semua juri beserta data dosennya
-    //     $juris = User::with('lecturer')->where('role', 'dosen')->get();
-    //     return view('admin.juries.index', compact('juris'));
-    // }
+    /**
+     * Ambil faculty_id yang berlaku untuk user yang sedang login.
+     * - admin_fakultas : hanya fakultasnya sendiri
+     * - super_admin / admin_univ : bisa semua (null = tidak dibatasi)
+     */
+    private function getAdminFacultyId(): ?int
+    {
+        $user = Auth::user();
+        if ($user->role === 'admin_fakultas') {
+            return (int) $user->faculty_id;
+        }
+
+        return null;
+    }
 
     public function index(Request $request)
     {
-        $faculties = Faculty::all();
+        $adminFacultyId = $this->getAdminFacultyId();
+
+        // admin_fakultas: faculties hanya miliknya sendiri, tidak perlu dropdown
+        $faculties = $adminFacultyId
+            ? Faculty::where('id', $adminFacultyId)->get()
+            : Faculty::all();
+
         $query = User::where('role', 'dosen')->with('lecturer.faculty');
 
-        // Jika Dropdown Fakultas dipilih
-        if ($request->filled('faculty_id')) {
-            $query->whereHas('lecturer', function($q) use ($request) {
-                $q->where('faculty_id', $request->faculty_id);
-            });
+        if ($adminFacultyId) {
+            // paksa filter ke fakultas admin yang login
+            $query->whereHas('lecturer', fn ($q) => $q->where('faculty_id', $adminFacultyId));
+        } elseif ($request->filled('faculty_id')) {
+            // super_admin / admin_univ: filter opsional dari dropdown
+            $query->whereHas('lecturer', fn ($q) => $q->where('faculty_id', $request->faculty_id));
         }
 
         $juries = $query->get();
-        return view('admin.juries.index', compact('juries', 'faculties'));
+
+        return view('admin.juries.index', compact('juries', 'faculties', 'adminFacultyId'));
     }
 
     public function store(Request $request)
     {
+        $adminFacultyId = $this->getAdminFacultyId();
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -43,6 +62,11 @@ class JuriController extends Controller
             'nip' => 'nullable|string|max:50',
             'faculty_id' => 'required|exists:faculties,id',
         ]);
+
+        // Pastikan admin_fakultas tidak bisa membuat juri di fakultas lain
+        if ($adminFacultyId && (int) $request->faculty_id !== $adminFacultyId) {
+            abort(403, 'Anda hanya dapat menambah juri di fakultas Anda sendiri.');
+        }
 
         $user = User::create([
             'name' => $request->name,
@@ -60,28 +84,37 @@ class JuriController extends Controller
         return back()->with('success', 'Akun Juri berhasil ditambahkan!');
     }
 
-    public function destroy(User $user)
-    {
-        $user->delete(); 
-        return back()->with('success', 'Akun Juri berhasil dihapus!');
-    }
-
     public function edit(User $user)
     {
+        $this->authorizeJuri($user);
+
         $user->load('lecturer');
-        $faculties = Faculty::all();
-        return view('admin.juries.edit', compact('user', 'faculties'));
+        $adminFacultyId = $this->getAdminFacultyId();
+
+        $faculties = $adminFacultyId
+            ? Faculty::where('id', $adminFacultyId)->get()
+            : Faculty::all();
+
+        return view('admin.juries.edit', compact('user', 'faculties', 'adminFacultyId'));
     }
 
     public function update(Request $request, User $user)
     {
+        $this->authorizeJuri($user);
+
+        $adminFacultyId = $this->getAdminFacultyId();
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'nip' => 'nullable|string|max:50',
             'faculty_id' => 'required|exists:faculties,id',
-            'password' => 'nullable|string|min:8', 
+            'password' => 'nullable|string|min:8',
         ]);
+
+        if ($adminFacultyId && (int) $request->faculty_id !== $adminFacultyId) {
+            abort(403, 'Anda hanya dapat memindahkan juri dalam fakultas Anda sendiri.');
+        }
 
         $user->name = $request->name;
         $user->email = $request->email;
@@ -92,12 +125,33 @@ class JuriController extends Controller
 
         $user->lecturer()->updateOrCreate(
             ['user_id' => $user->id],
-            [
-                'nip' => $request->nip,
-                'faculty_id' => $request->faculty_id,
-            ]
+            ['nip' => $request->nip, 'faculty_id' => $request->faculty_id]
         );
 
         return redirect()->route('admin.juries.index')->with('success', 'Data Juri berhasil diperbarui!');
+    }
+
+    public function destroy(User $user)
+    {
+        $this->authorizeJuri($user);
+        $user->delete();
+
+        return back()->with('success', 'Akun Juri berhasil dihapus!');
+    }
+
+    /**
+     * Pastikan admin_fakultas hanya bisa mengubah/hapus juri di fakultasnya.
+     */
+    private function authorizeJuri(User $user): void
+    {
+        $adminFacultyId = $this->getAdminFacultyId();
+        if (! $adminFacultyId) {
+            return;
+        }
+
+        $jurisFacultyId = $user->lecturer?->faculty_id;
+        if ((int) $jurisFacultyId !== $adminFacultyId) {
+            abort(403, 'Anda tidak memiliki akses ke juri ini.');
+        }
     }
 }

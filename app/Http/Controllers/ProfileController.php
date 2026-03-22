@@ -42,8 +42,7 @@ class ProfileController extends Controller
             $path = $request->file('photo')->store('profile-photos', 'public');
             $request->user()->photo = $path;
         }
-
-        $request->user()->save();
+        $request->user()->update(['faculty_id' => $request->faculty_id]);
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

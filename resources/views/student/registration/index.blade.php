@@ -1,31 +1,31 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-lg md:text-xl text-gray-800 leading-tight">
             {{ __('Pendaftaran Pilmapres') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6 md:py-12">
+        <div class="max-w-7xl mx-auto px-3 md:px-6 lg:px-8">
             <x-auth-session-status class="mb-4" :status="session('success')" />
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        <h3 class="text-base md:text-lg font-medium text-gray-900 mb-4">
                             Biodata Peserta
                         </h3>
                         <div class="space-y-3 text-sm">
-                            <div class="w-24 h-24 bg-white overflow-hidden mb-3 shadow-inner flex items-center justify-center">
+                            <div class="w-20 md:w-24 h-20 md:h-24 bg-white overflow-hidden mb-3 shadow-inner flex items-center justify-center flex-shrink-0">
                                 @if(Auth::user()->photo)
                                     <img src="{{ asset('storage/' . Auth::user()->photo) }}" alt="Foto Profil" class="w-full h-full object-cover">
                                 @else
-                                    <svg class="w-16 h-16 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                    <svg class="w-12 md:w-16 h-12 md:h-16 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                 @endif
                             </div>
                             <div>
-                                <span class="text-gray-500 block"
+                                <span class="text-gray-500 block text-xs md:text-sm"
                                     >Nama Lengkap</span
                                 >
                                 <span class="font-semibold"
@@ -33,13 +33,13 @@
                                 >
                             </div>
                             <div>
-                                <span class="text-gray-500 block">NIM</span>
+                                <span class="text-gray-500 block text-xs md:text-sm">NIM</span>
                                 <span class="font-semibold"
                                     >{{ $student->nim }}</span
                                 >
                             </div>
                             <div>
-                                <span class="text-gray-500 block"
+                                <span class="text-gray-500 block text-xs md:text-sm"
                                     >Program Studi</span
                                 >
                                 <span class="font-semibold"
@@ -47,7 +47,7 @@
                                 >
                             </div>
                             <div>
-                                <span class="text-gray-500 block">IPK</span>
+                                <span class="text-gray-500 block text-xs md:text-sm">IPK</span>
                                 <span class="font-semibold"
                                     >{{ $student->ipk }}</span
                                 >
@@ -55,11 +55,16 @@
                         </div>
                     </div>
 
+                    @if(!$activePeriod)
+                        <div class="bg-red-50 border border-red-300 rounded p-3 md:p-4 text-red-700 text-xs md:text-sm">
+                            Periode pendaftaran belum dibuka atau sudah berakhir. Silakan hubungi admin fakultas.
+                        </div>
+                    @else
                     <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">
+                        <h3 class="text-base md:text-lg font-medium text-gray-900 mb-2">
                             Berkas Persyaratan
                         </h3>
-                        <h4 class="text-md font-medium text-gray-900 mb-1">
+                        <h4 class="text-sm md:text-base font-medium text-gray-900 mb-1">
                             Tahap Fakultas
                         </h4>
 
@@ -67,12 +72,12 @@
                             action="{{ route('student.registration.update') }}"
                             method="POST"
                             enctype="multipart/form-data"
-                        >
+                        X>
                             @csrf @method('PUT')
 
                             <div class="mb-4">
                                 <label
-                                    class="block text-sm font-medium text-gray-700"
+                                    class="block text-xs md:text-sm font-medium text-gray-700"
                                     >Naskah Gagasan Kreatif</label
                                 >
                                 <div class="mt-1 flex items-center">
@@ -205,17 +210,27 @@
                                 Simpan Berkas
                             </button>
                         </form>
+
+                        <div class="mt-8 border-t pt-4 flex justify-end">
+                            <a
+                                href="{{ route('student.achievements.index') }}"
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            >
+                                Lanjut: Isi Capaian Unggulan (CU) &rarr;
+                            </a>
+                        </div>
                     </div>
+                    @endif
                 </div>
 
-                <div class="mt-8 border-t pt-4 flex justify-end">
+                {{-- <div class="mt-8 border-t pt-4 flex justify-end">
                     <a
                         href="{{ route('student.achievements.index') }}"
                         class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
                     >
                         Lanjut: Isi Capaian Unggulan (CU) &rarr;
                     </a>
-                </div>
+                </div> --}}
             </div>
         </div>
     </div>
