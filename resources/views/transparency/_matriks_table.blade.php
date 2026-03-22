@@ -25,7 +25,7 @@
                     if ($isCuRoot) {
                         $cuRawAvg = 0;
                         foreach ($root->children as $sub) {
-                            $cuRawAvg += $assessments->where('criteria_id', $sub->id)->first()?->score ?? 0;
+                            $cuRawAvg += $assessments->where('criteria_id', $sub->id)->avg('score') ?? 0;
                         }
                         $rootAccumAvg = ($cuRawAvg / 500) * 100 * $root->weight;
                     } else {
@@ -52,7 +52,7 @@
                     @php
                         $isSubParent = $sub->children->isNotEmpty();
                         $subGw = $globalWeights[$sub->id] ?? 0;
-                        $nilaiSub = $assessments->where('criteria_id', $sub->id)->first()?->score ?? 0;
+                        $nilaiSub = $assessments->where('criteria_id', $sub->id)->avg('score') ?? 0;
                         if ($isCuRoot) {
                             $subAccumAvg = ($nilaiSub / 500) * 100 * $root->weight;
                         } elseif (!$isSubParent) {
@@ -81,7 +81,7 @@
                         @php
                             $isSubSubParent = $subsub->children->isNotEmpty();
                             $subsubGw = $globalWeights[$subsub->id] ?? 0;
-                            $nilaiSubSub = $assessments->where('criteria_id', $subsub->id)->first()?->score ?? 0;
+                            $nilaiSubSub = $assessments->where('criteria_id', $subsub->id)->avg('score') ?? 0;
                             if (!$isSubSubParent) {
                                 $subsubAccumAvg = $subsub->max_score > 0 ? ($nilaiSubSub / $subsub->max_score) * 100 * $subsubGw : 0;
                             } else {
@@ -107,7 +107,7 @@
                         @foreach($subsub->children as $l4)
                             @php
                                 $l4Gw = $globalWeights[$l4->id] ?? 0;
-                                $nilaiL4 = $assessments->where('criteria_id', $l4->id)->first()?->score ?? 0;
+                                $nilaiL4 = $assessments->where('criteria_id', $l4->id)->avg('score') ?? 0;
                                 $l4AccumAvg = $l4->max_score > 0 ? ($nilaiL4 / $l4->max_score) * 100 * $l4Gw : 0;
                             @endphp
                             <tr class="bg-white hover:bg-gray-50">

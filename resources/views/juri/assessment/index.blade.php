@@ -46,7 +46,6 @@
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         @php
-                                            // BENAR: Menggunakan $reg sesuai variabel forelse
                                             $isConflict = (!$juri->is_univ_judge && $reg->student->prodi == $juri->unit_kerja);
                                         @endphp
 
@@ -54,6 +53,10 @@
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
                                                 Conflict of Interest (Satu Prodi)
                                             </span>
+                                        @elseif(in_array($reg->id, $sudahDinilai))
+                                            <a href="{{ route('juri.assessments.edit', $reg->id) }}" class="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded shadow text-sm">
+                                                Edit Nilai
+                                            </a>
                                         @else
                                             <a href="{{ route('juri.assessments.edit', $reg->id) }}" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded shadow text-sm">
                                                 Beri Nilai
@@ -63,7 +66,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">Belum ada peserta yang dapat dinilai.</td>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">Belum ada peserta yang dapat dinilai.</td>
                                 </tr>
                             @endforelse
                         </tbody>

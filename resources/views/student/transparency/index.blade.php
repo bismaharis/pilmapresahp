@@ -1,4 +1,4 @@
-<x-app-layout>
+{{-- <x-app-layout>
     <x-slot name="header">
         Peringkat Mahasiswa
     </x-slot>
@@ -68,4 +68,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-app-layout> --}}

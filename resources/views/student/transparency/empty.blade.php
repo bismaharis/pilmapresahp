@@ -1,4 +1,4 @@
-<x-app-layout>
+{{-- <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Transparansi Penilaian</h2>
     </x-slot>
@@ -7,4 +7,4 @@
             Nilai Anda belum diproses atau Juri belum menyelesaikan penilaian. Silakan cek kembali nanti.
         </div>
     </div></div>
-</x-app-layout>
+</x-app-layout> --}}

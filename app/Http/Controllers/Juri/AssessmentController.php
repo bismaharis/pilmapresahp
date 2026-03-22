@@ -33,14 +33,20 @@ class AssessmentController extends Controller
             $query->where('stage', 'universitas');
         } else {
 
-            $query->whereHas('student', function ($q) use ($user) {
-                $q->where('faculty_id', $user->faculty_id);
+            $query->whereHas('student', function ($q) use ($juri) {
+                $q->where('faculty_id', $juri->faculty_id);
             })->where('stage', 'fakultas');
         }
 
         $registrations = $query->get();
 
-        return view('juri.assessment.index', compact('registrations', 'juri'));
+        $sudahDinilai = Assessment::where('lecturer_id', $juri->id)
+            ->whereIn('registration_id', $registrations->pluck('id'))
+            ->pluck('registration_id')
+            ->unique()
+            ->toArray();
+
+        return view('juri.assessment.index', compact('registrations', 'juri', 'sudahDinilai'));
     }
 
     public function edit(Registration $registration)
@@ -49,55 +55,53 @@ class AssessmentController extends Controller
         $juri = $user->lecturer;
         $registration = Registration::with('achievements', 'student.user')->findOrFail($registration->id);
 
-        if ($juri->is_univ_judge) {
-            if ($registration->stage != 'universitas') {
-                abort(403, 'Akses Ditolak: Anda hanya dapat menilai peserta di tahap Universitas.');
-            }
-        } else {
-            if ($registration->student->faculty_id != $user->faculty_id) {
-                abort(403, 'Akses Ditolak: Anda tidak berhak menilai mahasiswa dari Fakultas lain.');
-            }
-            if ($registration->student->prodi == $juri->unit_kerja) {
-                abort(403, 'Conflict of Interest: Anda dilarang menilai mahasiswa dari Program Studi Anda sendiri.');
-            }
-        }
-
         // $existingAssessments = Assessment::where('registration_id', $registration->id)
         //     ->where('lecturer_id', auth()->id())
         //     ->get()
         //     ->keyBy('criterion_id');
 
+        $this->authorizeJuri($juri, $registration);
+ 
         $registration->load('achievements');
-
+ 
         $criteriaTree = Criteria::whereNull('parent_id')
             ->with(['children.children.children'])
             ->get();
 
-        $existingScores = \App\Models\Assessment::where('registration_id', $registration->id)
+        $existingScores = Assessment::where('registration_id', $registration->id)
             ->where('lecturer_id', $juri->id)
             ->pluck('score', 'criteria_id')
             ->toArray();
 
-        return view('juri.assessment.edit', compact('registration', 'criteriaTree', 'existingScores'));
+        $existingNotes = Assessment::where('registration_id', $registration->id)
+            ->where('lecturer_id', $juri->id)
+            ->pluck('notes', 'criteria_id')
+            ->toArray();
+
+        return view('juri.assessment.edit', compact('registration', 'criteriaTree', 'existingScores', 'existingNotes'));
     }
 
     public function update(Request $request, Registration $registration)
     {
+        $juri = Auth::user()->lecturer;
+
+        $this->authorizeJuri($juri, $registration);
+
         $request->validate([
-            'scores' => 'nullable|array',
-            'scores.*' => 'numeric|min:0',
+            'scores' => 'required|array',
+            'scores.*' => 'required|numeric|min:0',
             'achievement_scores' => 'nullable|array',
             'achievement_scores.*' => 'numeric|min:0|max:50',
             'notes' => 'nullable|array',
             'notes.*' => 'nullable|string',
         ]);
 
-        $juriId = Auth::user()->lecturer->id;
+        // $juri->id = Auth::user()->lecturer->id;
 
         try {
             $this->assessmentService->saveScores(
                 $registration->id,
-                $juriId,
+                $juri->id,
                 $request->scores ?? [],
                 $request->notes ?? [],
                 $request->achievement_scores ?? []
@@ -107,6 +111,25 @@ class AssessmentController extends Controller
             return redirect()->route('juri.assessments.index')->with('success', 'Nilai berhasil disimpan!');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    private function authorizeJuri($juri, Registration $registration): void
+    {
+        if ($juri->is_univ_judge) {
+            if ($registration->stage !== 'universitas') {
+                abort(403, 'Akses Ditolak: Anda hanya dapat menilai peserta di tahap Universitas.');
+            }
+        } else {
+            if ($registration->stage !== 'fakultas') {
+                abort(403, 'Akses Ditolak: Anda hanya dapat menilai peserta di tahap Fakultas.');
+            }
+            if ($registration->student->faculty_id != $juri->faculty_id) {
+                abort(403, 'Akses Ditolak: Anda tidak berhak menilai mahasiswa dari Fakultas lain.');
+            }
+            if ($registration->student->prodi == $juri->unit_kerja) {
+                abort(403, 'Conflict of Interest: Anda dilarang menilai mahasiswa dari Program Studi Anda sendiri.');
+            }
         }
     }
 }

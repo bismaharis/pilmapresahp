@@ -1,4 +1,4 @@
-<x-app-layout>
+{{-- <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center space-x-4">
             <a href="{{ route('student.transparency.index', ['stage' => $stage]) }}" class="text-gray-500 hover:text-cyan-600">
@@ -160,4 +160,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-app-layout> --}}

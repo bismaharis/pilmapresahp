@@ -9,65 +9,10 @@
     </x-slot>
 
     @php
-        /**
-         * Hitung bobot global setiap node (perkalian bobot dari root ke node).
-         * Hasilnya: ['criteria_id' => global_weight]
-         */
-        function computeGlobalWeights($children, float $parentWeight, array &$result): void {
-            foreach ($children as $child) {
-                $gw = $parentWeight * $child->weight;
-                $result[$child->id] = $gw;
-                if ($child->children->isNotEmpty()) {
-                    computeGlobalWeights($child->children, $gw, $result);
-                }
-            }
-        }
-
         $globalWeights = [];
         foreach ($criterias as $root) {
             $globalWeights[$root->id] = $root->weight;
             computeGlobalWeights($root->children, $root->weight, $globalWeights);
-        }
-
-        /**
-         * Format angka: 4 desimal hanya untuk level 4 GK, sisanya 2.
-         * $level: kedalaman node (root=0, child=1, dst)
-         * $isGk: apakah node ini bagian dari GK
-         */
-        function fmt(float $val, int $level = 0, bool $isGk = false): string {
-            if ($isGk && $level >= 3) return number_format($val, 4);
-            return number_format($val, 2);
-        }
-
-        /**
-         * Format bobot global sebagai persen.
-         * Bobot kecil (level dalam GK) perlu 4 desimal agar tidak tampil 0.00%.
-         */
-        function fmtWeight(float $gw, int $level = 0, bool $isGk = false): string {
-            $pct = $gw * 100;
-            if ($isGk && $level >= 2) return number_format($pct, 4) . '%';
-            return number_format($pct, 2) . '%';
-        }
-
-        /**
-         * Hitung skor terbobot akumulasi dari semua leaf di bawah node ini.
-         * $source: collection assessments (per juri atau rata-rata)
-         * $isCollection: true jika $source adalah Eloquent collection (pakai ->get($id)),
-         *                false jika pakai ->where('criteria_id', $id)->first()
-         */
-        function accumScore($node, $source, bool $isCollection, string $type): float {
-            if ($node->children->isEmpty()) {
-                $score = $isCollection
-                    ? ($source->get($node->id)?->score ?? 0)
-                    : ($source->where('criteria_id', $node->id)->first()?->score ?? 0);
-                if ($type === 'cu') return 0; // CU dihitung terpisah
-                return $node->max_score > 0 ? ($score / $node->max_score) * 100 * $node->weight : 0;
-            }
-            $total = 0;
-            foreach ($node->children as $child) {
-                $total += accumScore($child, $source, $isCollection, $type);
-            }
-            return $total * $node->weight;
         }
     @endphp
 

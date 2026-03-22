@@ -281,8 +281,7 @@
                                         
                                         <div class="p-4 bg-gray-50 border-t-2 border-gray-200">
                                             <label class="block text-sm font-bold text-gray-700 mb-2">Komentar/Catatan Evaluasi untuk {{ $root->name }} <span class="text-gray-400 font-normal">(Opsional)</span></label>
-                                            <textarea name="notes[{{ $root->id }}]" rows="2" class="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm shadow-sm" placeholder="Berikan catatan evaluasi singkat terkait komponen ini...">{{ old('notes.'.$root->id, isset($existingScores[$root->id]) ? $existingScores[$root->id] : '') }}</textarea>
-                                        </div>
+                                            <textarea name="notes[{{ $root->id }}]" rows="2" class="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm shadow-sm" placeholder="Berikan catatan evaluasi singkat terkait komponen ini...">{{ old('notes.'.$root->id, $existingNotes[$root->id] ?? '') }}</textarea>                                        </div>
 
                                     </div>
                                     
