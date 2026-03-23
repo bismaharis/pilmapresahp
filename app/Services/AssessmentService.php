@@ -44,7 +44,7 @@ class AssessmentService
                                 'lecturer_id'     => $lecturerId,
                                 'criteria_id'     => $cat->id,
                             ],
-                            ['score' => $finalScore]
+                            ['score' => $finalScore, 'notes' => $notes[$cat->id] ?? null],
                         );
                     }
                 }

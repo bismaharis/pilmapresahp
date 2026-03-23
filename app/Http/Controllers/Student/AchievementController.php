@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\PilmapresPeriod;
 use App\Models\Registration;
 use App\Services\AchievementService;
 use Illuminate\Http\Request;
@@ -22,22 +23,32 @@ class AchievementController extends Controller
             return redirect()->route('profile.edit')
                 ->with('error', 'Silakan lengkapi biodata akademik Anda (NIM, Prodi, dsb) terlebih dahulu sebelum mengakses halaman pendaftaran.');
         }
+        
+        $activePeriod = PilmapresPeriod::getActivePeriodForFaculty($student->faculty_id);
 
-        $registration = Registration::firstOrCreate(
-            [
-                'student_id' => $student->id,
-                'period_id' => 1,
-            ],
-            ['status' => 'draft']
-        );
+        $registration = $activePeriod
+            ? Registration::firstOrCreate(
+                ['student_id' => $student->id, 'period_id' => $activePeriod->id],
+                ['stage' => 'fakultas', 'status' => 'draft']
+            )
+            : $student->registrations()->latest()->first();
+ 
+        $achievements = $registration
+            ? $registration->achievements()->latest()->get()
+            : collect();
 
-        $achievements = $registration->achievements()->latest()->get();
-
-        return view('student.achievements.index', compact('achievements', 'registration'));
+        return view('student.achievements.index', compact('achievements', 'registration', 'activePeriod'));
     }
 
     public function store(Request $request)
     {
+        $student = Auth::user()->student;
+
+        $activePeriod = PilmapresPeriod::getActivePeriodForFaculty($student->faculty_id);
+        if (!$activePeriod) {
+            return back()->with('error', 'Tidak dapat menambah capaian karena tidak ada periode seleksi yang sedang berjalan.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'capaian' => 'required|string|max:255',
@@ -51,10 +62,8 @@ class AchievementController extends Controller
             'file_proof' => 'required|file|mimes:pdf,jpg,png|max:5120',
         ]);
 
-        $student = Auth::user()->student;
-
         $registration = Registration::firstOrCreate(
-            ['student_id' => $student->id, 'period_id' => 1],
+            ['student_id' => $student->id, 'period_id' => $activePeriod->id],
             ['stage' => 'fakultas', 'status' => 'draft']
         );
 

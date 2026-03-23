@@ -39,4 +39,8 @@ class Registration extends Model
     {
         return $this->hasMany(Assessment::class);
     }
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(PilmapresPeriod::class);
+    }
 }

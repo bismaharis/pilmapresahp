@@ -72,7 +72,7 @@
                             action="{{ route('student.registration.update') }}"
                             method="POST"
                             enctype="multipart/form-data"
-                        X>
+                        >
                             @csrf @method('PUT')
 
                             <div class="mb-4">

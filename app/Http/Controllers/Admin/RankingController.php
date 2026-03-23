@@ -80,16 +80,24 @@ class RankingController extends Controller
 
     public function delegate(Registration $registration)
     {
+        $user = Auth::user();
+        if ($user->role === 'admin_fakultas' &&
+            $registration->student->faculty_id != $user->faculty_id) {
+            abort(403, 'Anda tidak berhak mendelegasikan peserta dari fakultas lain.');
+        }
         $registration->update(['stage' => 'universitas']);
-        
         return back()->with('success', 'Peserta berhasil didelegasikan ke tingkat Universitas!');
     }
 
     public function cancelDelegate(Registration $registration)
     {
+        $user = Auth::user();
+        if ($user->role === 'admin_fakultas' &&
+            $registration->student->faculty_id != $user->faculty_id) {
+            abort(403, 'Anda tidak berhak membatalkan delegasi peserta dari fakultas lain.');
+        }
         $registration->update(['stage' => 'fakultas']);
-        
-        return back()->with('success', 'Delegasi dibatalkan! Peserta dikembalikan ke tingkat Fakultas.');
+        return back()->with('success', 'Delegasi dibatalkan!');
     }
 
 }
