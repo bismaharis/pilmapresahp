@@ -10,6 +10,12 @@
 
             <x-auth-session-status class="mb-4" :status="session('success')" />
 
+            @if(session('error'))
+                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             {{-- FORM TAMBAH JADWAL --}}
             <div class="bg-white shadow-sm rounded-lg p-6">
                 <h3 class="text-lg font-bold text-gray-800 mb-4">Tambah / Perbarui Jadwal Seleksi</h3>

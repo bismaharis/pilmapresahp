@@ -37,6 +37,8 @@ class User extends Authenticatable
         'faculty_id',
     ];
 
+    protected $guarded = ['id', 'created_at', 'updated_at', 'email_verified_at'];
+
     /**
      * The attributes that should be hidden for serialization.
      *

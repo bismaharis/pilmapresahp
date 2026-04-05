@@ -30,7 +30,7 @@
                     <p class="text-2xl md:text-3xl font-extrabold text-blue-700">
                         {{ number_format($stage == 'fakultas' ? $registration->total_score_fakultas : $registration->total_score_univ, 2) }}
                     </p>
-                    <p class="text-xs text-gray-400 mt-1">Rata-rata dari semua juri</p>
+                    <p class="text-xs text-gray-400 mt-1">Rata-rata dari juri yang telah menilai</p>
                 </div>
             </div>
         </div>
@@ -45,18 +45,7 @@
 
         {{-- TRANSPARANSI PER JURI (hanya non-mahasiswa) --}}
         @if($role !== 'mahasiswa')
-            @if(!$allJuriDone)
-                <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-5 flex items-start space-x-4">
-                    <svg class="w-6 h-6 text-yellow-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-                    </svg>
-                    <div>
-                        <p class="font-bold text-yellow-800">Penilaian Belum Selesai</p>
-                        <p class="text-sm text-yellow-700 mt-1">Rincian nilai dan komentar per juri baru dapat dilihat setelah <strong>semua juri</strong> menyelesaikan penilaian untuk peserta ini.</p>
-                        <p class="text-xs text-yellow-600 mt-2">Juri yang sudah menilai: <strong>{{ $assessmentsByLecturer->count() }}</strong> orang</p>
-                    </div>
-                </div>
-            @else
+            @if($allJuriDone)
                 @php
                     $juriList = $assessmentsByLecturer->map(function($items, $lecturerId) {
                         $first = $items->first();
@@ -68,9 +57,9 @@
                     <div class="bg-gradient-to-r from-cyan-700 to-blue-700 px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                         <div>
                             <h3 class="text-base md:text-lg font-bold text-white">Rincian Nilai Per Juri</h3>
-                            <p class="text-xs text-cyan-200 mt-0.5">Semua juri telah menyelesaikan &bull; {{ $juriList->count() }} juri berpartisipasi</p>
+                            <p class="text-xs text-cyan-200 mt-0.5">Transparansi penilaian dari juri yang telah menilai &bull; {{ $juriList->count() }} juri</p>
                         </div>
-                        <span class="bg-green-400 text-green-900 text-xs font-bold px-3 py-1 rounded-full self-start md:self-auto">&#10003; Selesai</span>
+                        <span class="bg-blue-400 text-blue-900 text-xs font-bold px-3 py-1 rounded-full self-start md:self-auto">✓ Tersedia</span>
                     </div>
 
                     {{-- Tab Buttons --}}
@@ -266,7 +255,7 @@
             <div class="bg-white shadow-sm rounded-lg overflow-hidden border-t-4 border-blue-600">
                 <div class="px-4 md:px-6 py-4 border-b border-gray-200">
                     <h3 class="text-base md:text-lg font-bold text-gray-800">Matriks Hasil Keputusan AHP</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Nilai akhir berdasarkan rata-rata penilaian seluruh juri</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Nilai akhir berdasarkan rata-rata penilaian dari juri yang telah menilai</p>
                 </div>
                 @include('transparency._matriks_table', [
                     'assessments' => $registration->assessments,

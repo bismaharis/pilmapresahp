@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
     <title>Surat Keputusan Pemenang Pilmapres</title>
     <style>
         body {
@@ -92,7 +93,7 @@
             <tr>
                 <td class="text-center text-bold">{{ $index + 1 }}</td>
                 <td class="text-center">{{ $reg->student->nim }}</td>
-                <td>{{ $reg->student->user->name }}</td>
+                <td>{{ optional($reg->student->user)->name ?? 'Tidak Diketahui' }}</td>
                 <td class="text-center">{{ $reg->student->prodi }}</td>
                 <td class="text-center text-bold">{{ number_format($reg->$scoreColumn, 2) }}</td>
             </tr>

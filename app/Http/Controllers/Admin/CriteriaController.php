@@ -4,26 +4,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Criteria;
-use App\Services\AhpSettingsService;
-use Illuminate\Http\RedirectResponse;
+use App\Services\AhpMatrixService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CriteriaController extends Controller
 {
-    protected $ahpService;
+    protected AhpMatrixService $ahpMatrixService;
 
-    public function __construct(AhpSettingsService $ahpService)
+    public function __construct(AhpMatrixService $ahpMatrixService)
     {
-        $this->ahpService = $ahpService;
+        $this->ahpMatrixService = $ahpMatrixService;
     }
 
     public function index(): View
     {
         // Langsung ambil dari Model beserta relasi anak-anaknya agar View bisa menampilkan tabel hierarki
         $criterias = Criteria::whereNull('parent_id')
-                        ->with(['children.children.children'])
-                        ->get();
+            ->with(['children.children.children'])
+            ->get();
 
         return view('admin.criteria.index', compact('criterias'));
     }
@@ -32,21 +31,23 @@ class CriteriaController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'weight' => 'required|numeric|min:0|max:100', 
+            'weight' => 'required|numeric|min:0|max:100',
             'max_score' => 'required|numeric|min:0',
             'type' => 'nullable|string|in:cu,gk,bi',
-            'parent_id' => 'nullable|exists:criterias,id'
+            'parent_id' => 'nullable|exists:criterias,id',
         ]);
 
         Criteria::create([
             'name' => $request->name,
-            'weight' => $request->weight / 100, // <--- RUMUS INI WAJIB ADA
+            'weight' => $request->weight / 100,
             'max_score' => $request->max_score,
             'type' => $request->type ?? 'general',
-            'parent_id' => $request->parent_id
+            'parent_id' => $request->parent_id,
         ]);
 
-        return back()->with('success', 'Kriteria baru berhasil ditambahkan.');
+        $this->ahpMatrixService->recalculateAllWeights();
+
+        return back()->with('success', 'Kriteria baru berhasil ditambahkan dan bobot AHP diperbarui');
     }
 
     public function update(Request $request, int $id)
@@ -57,19 +58,27 @@ class CriteriaController extends Controller
             'name' => 'required|string|max:255',
             'weight' => 'required|numeric|min:0|max:100',
             'max_score' => 'required|numeric|min:0',
-            'type' => 'nullable|string|in:cu,gk,bi'
+            'type' => 'nullable|string|in:cu,gk,bi',
         ]);
 
         try {
             $criteria->update([
                 'name' => $request->name,
-                'weight' => $request->weight / 100, 
+                'weight' => $request->weight / 100,
                 'max_score' => $request->max_score,
-                'type' => $request->type ?? $criteria->type
+                'type' => $request->type ?? $criteria->type,
             ]);
 
-            return back()->with('success', 'Kriteria berhasil diperbarui.');
-            
+            $this->ahpMatrixService->recalculateAllWeights();
+
+            // Jika criteria memiliki children, redirect ke pairwise-comparisons untuk input raw values
+            if ($criteria->children()->exists()) {
+                return redirect()->route('admin.pairwise-comparisons.edit', $criteria->id)
+                    ->with('success', 'Kriteria berhasil diperbarui. Silakan atur bobot pairwise-nya.');
+            }
+
+            return back()->with('success', 'Kriteria berhasil diperbarui dan bobot AHP diperbarui.');
+
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -78,13 +87,15 @@ class CriteriaController extends Controller
     public function destroy($id)
     {
         $criteria = Criteria::findOrFail($id);
-        
+
         if ($criteria->children()->count() > 0) {
             return back()->with('error', 'Gagal dihapus! Kriteria ini masih memiliki Sub-Kriteria di bawahnya. Hapus sub-kriteria terlebih dahulu.');
         }
 
         $criteria->delete();
 
-        return back()->with('success', 'Kriteria berhasil dihapus.');
+        $this->ahpMatrixService->recalculateAllWeights();
+
+        return back()->with('success', 'Kriteria berhasil dihapus dan bobot AHP diperbarui.');
     }
 }

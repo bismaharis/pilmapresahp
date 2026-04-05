@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PilmapresPeriod extends Model
 {
@@ -26,6 +27,11 @@ class PilmapresPeriod extends Model
         return $this->belongsTo(Faculty::class);
     }
 
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(Registration::class, 'period_id');
+    }
+
     /**
      * Cek apakah periode ini sedang berjalan (aktif + dalam rentang tanggal).
      */
@@ -44,12 +50,13 @@ class PilmapresPeriod extends Model
      */
     public static function getActivePeriodForFaculty(int $facultyId): ?self
     {
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today();
 
         return self::where('faculty_id', $facultyId)
             ->where('is_active', true)
-            ->where('start_date', '<=', $today)
-            ->where('end_date', '>=', $today)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->latest('id')
             ->first();
     }
 }

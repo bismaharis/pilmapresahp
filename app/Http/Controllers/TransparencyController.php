@@ -19,43 +19,48 @@ class TransparencyController extends Controller
 
         // $query = Registration::with(['student.user', 'student.faculty'])->where('status', '!=', 'draft');
 
+        $scoreColumn = $stage === 'fakultas' ? 'total_score_fakultas' : 'total_score_univ';
+
         $query = Registration::with(['student.user', 'student.faculty'])
-            ->whereIn('status', ['submitted', 'verified', 'approved']) 
             ->whereNotNull('file_gk')
-            ->whereNotNull('file_transkrip');
+            ->whereNotNull('file_transkrip')
+            ->where(function ($q) use ($scoreColumn) {
+                $q->whereIn('status', ['submitted', 'verified', 'approved'])
+                    ->orWhereNotNull($scoreColumn);
+            });
 
         // LOGIKA FILTER BERDASARKAN ROLE
         if ($role === 'mahasiswa') {
             $student = $user->student;
-            if (!$student) return redirect()->route('profile.edit')->with('error', 'Lengkapi biodata akademik Anda.');
-            
+            if (! $student) {
+                return redirect()->route('profile.edit')->with('error', 'Lengkapi biodata akademik Anda.');
+            }
+
             if ($stage === 'fakultas') {
-                $query->whereHas('student', function($q) use ($student) {
-                    $q->where('faculty_id', $student->faculty_id); 
+                $query->whereHas('student', function ($q) use ($student) {
+                    $q->where('faculty_id', $student->faculty_id);
                 });
             }
             $myRegistration = Registration::where('student_id', $student->id)->first();
-        }
-        elseif (in_array($role, ['admin_fakultas', 'dosen'])) {
+        } elseif (in_array($role, ['admin_fakultas', 'dosen'])) {
             $isUnivJudge = ($role === 'dosen' && $user->lecturer && $user->lecturer->is_univ_judge);
             $userFacultyId = $role === 'dosen' ? $user->lecturer->faculty_id : $user->faculty_id;
 
-            if (!$isUnivJudge) {
-                $query->whereHas('student', function($q) use ($userFacultyId) {
+            if (! $isUnivJudge) {
+                $query->whereHas('student', function ($q) use ($userFacultyId) {
                     $q->where('faculty_id', $userFacultyId);
                 });
             } else {
                 if ($request->filled('faculty_id')) {
-                    $query->whereHas('student', function($q) use ($request) {
+                    $query->whereHas('student', function ($q) use ($request) {
                         $q->where('faculty_id', $request->faculty_id);
                     });
                 }
             }
             $myRegistration = null;
-        } 
-        else {
+        } else {
             if ($request->filled('faculty_id')) {
-                $query->whereHas('student', function($q) use ($request) {
+                $query->whereHas('student', function ($q) use ($request) {
                     $q->where('faculty_id', $request->faculty_id);
                 });
             }
@@ -76,8 +81,7 @@ class TransparencyController extends Controller
     {
         $user = Auth::user();
         $role = $user->role;
-        
-        // Mahasiswa dilarang cetak PDF
+
         if ($role === 'mahasiswa') {
             abort(403, 'Akses Ditolak: Anda tidak memiliki wewenang mencetak PDF.');
         }
@@ -87,51 +91,66 @@ class TransparencyController extends Controller
         $userFacultyId = $role === 'dosen' ? $user->lecturer->faculty_id : $user->faculty_id;
 
         if ($isUnivJudge) {
-            $stage = 'universitas'; 
-        } elseif (in_array($role, ['admin_fakultas']) || ($role === 'dosen' && !$isUnivJudge)) {
-            $stage = 'fakultas'; 
+            $stage = 'universitas';
+        } elseif (in_array($role, ['admin_fakultas']) || ($role === 'dosen' && ! $isUnivJudge)) {
+            $stage = 'fakultas';
         }
 
-        // Ambil data yang hanya sudah disubmit dan ada file-nya 
+        $scoreColumn = $stage === 'fakultas' ? 'total_score_fakultas' : 'total_score_univ';
+
+        // Tidak pakai filter ->where('stage', $stage) karena peserta yang sudah
+        // didelegasi ke universitas stage-nya berubah, padahal nilainya sudah ada
+        // di total_score_fakultas. Filter menggunakan scoreColumn NOT NULL saja.
         $query = Registration::with(['student.user', 'student.faculty'])
-            ->whereIn('status', ['submitted', 'verified', 'approved']) 
+            ->whereIn('status', ['submitted', 'verified', 'approved'])
             ->whereNotNull('file_gk')
             ->whereNotNull('file_transkrip')
-            ->where('stage', $stage);
+            ->whereNotNull($scoreColumn);  // ← hanya pastikan sudah punya skor
+
+        // Untuk tahap universitas tetap filter stage = universitas
+        if ($stage === 'universitas') {
+            $query->where('stage', 'universitas');
+        }
 
         $facultyNameTitle = '';
         $fileNameSlug = '';
 
-        if (in_array($role, ['admin_fakultas', 'dosen']) && !$isUnivJudge) {
-            $query->whereHas('student', function($q) use ($userFacultyId) {
+        if (in_array($role, ['admin_fakultas', 'dosen']) && ! $isUnivJudge) {
+            $query->whereHas('student', function ($q) use ($userFacultyId) {
                 $q->where('faculty_id', $userFacultyId);
             });
             $faculty = Faculty::find($userFacultyId);
             if ($faculty) {
-                $facultyNameTitle = ' - ' . strtoupper($faculty->name);
-                $fileNameSlug = '_' . \Illuminate\Support\Str::slug($faculty->name);
+                $facultyNameTitle = ' - '.strtoupper($faculty->name);
+                $fileNameSlug = '_'.\Illuminate\Support\Str::slug($faculty->name);
             }
-        } 
-        else {
+        } else {
             if ($request->filled('faculty_id')) {
-                $query->whereHas('student', function($q) use ($request) {
+                $query->whereHas('student', function ($q) use ($request) {
                     $q->where('faculty_id', $request->faculty_id);
                 });
                 $faculty = Faculty::find($request->faculty_id);
                 if ($faculty) {
-                    $facultyNameTitle = ' - ' . strtoupper($faculty->name);
-                    $fileNameSlug = '_' . \Illuminate\Support\Str::slug($faculty->name);
+                    $facultyNameTitle = ' - '.strtoupper($faculty->name);
+                    $fileNameSlug = '_'.\Illuminate\Support\Str::slug($faculty->name);
                 }
             }
         }
 
-        $scoreColumn = $stage === 'fakultas' ? 'total_score_fakultas' : 'total_score_univ';
         $rankings = $query->orderBy($scoreColumn, 'desc')->get();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('transparency.pdf', compact('rankings', 'stage', 'scoreColumn', 'facultyNameTitle'));
-        
+        // PERBAIKAN KEDUA: tambahkan $scoreColumn ke compact agar view bisa akses
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('transparency.pdf',
+            compact('rankings', 'stage', 'scoreColumn', 'facultyNameTitle')
+        );
+
+        $pdf->setOptions([
+            'defaultFont' => 'DejaVu Sans',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+        ]);
         $pdf->setPaper('a4', 'portrait');
-        $fileName = 'SK_Pemenang_Pilmapres_Tahap_' . ucfirst($stage) . $fileNameSlug . '_2026.pdf';
+        $fileName = 'SK_Pemenang_Pilmapres_Tahap_'.ucfirst($stage).$fileNameSlug.'_2026.pdf';
 
         return $pdf->download($fileName);
     }
@@ -158,7 +177,7 @@ class TransparencyController extends Controller
             $isUnivJudge = ($role === 'dosen' && $user->lecturer && $user->lecturer->is_univ_judge);
             $userFacultyId = $role === 'dosen' ? $user->lecturer->faculty_id : $user->faculty_id;
 
-            if (!$isUnivJudge && $registration->student->faculty_id !== $userFacultyId) {
+            if (! $isUnivJudge && $registration->student->faculty_id !== $userFacultyId) {
                 abort(403, 'Akses Ditolak: Anda hanya dapat melihat peserta dari Fakultas Anda.');
             }
         }
@@ -175,7 +194,7 @@ class TransparencyController extends Controller
             // Kelompokkan: [ lecturer_id => [ criteria_id => assessment ] ]
             $assessmentsByLecturer = $registration->assessments
                 ->groupBy('lecturer_id')
-                ->map(fn($items) => $items->keyBy('criteria_id'));
+                ->map(fn ($items) => $items->keyBy('criteria_id'));
 
             // Cek apakah semua juri yang diharapkan sudah menilai
             $expectedJuriQuery = \App\Models\Lecturer::query();
@@ -183,12 +202,13 @@ class TransparencyController extends Controller
                 $expectedJuriQuery->where('is_univ_judge', true);
             } else {
                 $expectedJuriQuery->where('faculty_id', $registration->student->faculty_id)
-                                  ->where('is_univ_judge', false);
+                    ->where('is_univ_judge', false);
             }
             $expectedJuriCount = $expectedJuriQuery->count();
             $juriYangSudahNilai = $assessmentsByLecturer->count();
 
-            $allJuriDone = $expectedJuriCount > 0 && $juriYangSudahNilai >= $expectedJuriCount;
+            // Tampilkan transparansi asalkan ada minimal 1 juri yang sudah menilai
+            $allJuriDone = $juriYangSudahNilai > 0;
         }
 
         return view('transparency.show', compact(

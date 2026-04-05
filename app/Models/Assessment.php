@@ -15,8 +15,10 @@ class Assessment extends Model
         'lecturer_id',
         'criteria_id',
         'score',
-        'notes'
+        'notes',
     ];
+
+    protected $guarded = ['id', 'created_at', 'updated_at'];
 
     public function registration(): BelongsTo
     {

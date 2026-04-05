@@ -18,7 +18,9 @@ class Criteria extends Model
         'type',
         'weight',
         'max_score',
-        'parent_id'
+        'parent_id',
+        'cr_value',
+        'cr_status',
     ];
 
     public function parent(): BelongsTo

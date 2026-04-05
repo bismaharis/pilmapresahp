@@ -23,22 +23,33 @@ class AssessmentController extends Controller
         $user = Auth::user();
         $juri = $user->lecturer;
 
-        $query = Registration::with(['student.user', 'achievements'])
-            ->whereIn('status', ['submitted', 'verified', 'approved'])
-            ->whereNotNull('file_gk')
-            ->whereNotNull('file_transkrip');
+        // Base query untuk registration yang eligible dinilai
+        $baseQuery = Registration::where(function ($q) {
+            $q->where(function ($sub) {
+                $sub->whereIn('status', ['submitted', 'verified', 'approved'])
+                    ->whereNotNull('file_gk')
+                    ->whereNotNull('file_transkrip');
+            })->orWhere(function ($sub) {
+                $sub->where('status', 'draft')
+                    ->whereNotNull('file_gk')
+                    ->whereNotNull('file_transkrip');
+            });
+        });
 
-        // logika juri
+        // Filter berdasarkan jenis juri
         if ($juri->is_univ_judge) {
-            $query->where('stage', 'universitas');
+            // Juri universitas hanya lihat mahasiswa yang sudah lolos ke universitas
+            $query = $baseQuery->where('stage', 'universitas');
         } else {
-
-            $query->whereHas('student', function ($q) use ($juri) {
-                $q->where('faculty_id', $juri->faculty_id);
-            })->where('stage', 'fakultas');
+            // Juri fakultas hanya lihat mahasiswa dari fakultasnya sendiri di tingkat fakultas
+            $query = $baseQuery->where('stage', 'fakultas')
+                ->whereHas('student', function ($q) use ($juri) {
+                    $q->where('faculty_id', $juri->faculty_id);
+                });
         }
 
-        $registrations = $query->get();
+        // Eager load relationships AFTER filtering
+        $registrations = $query->with(['student.user', 'achievements'])->get();
 
         $sudahDinilai = Assessment::where('lecturer_id', $juri->id)
             ->whereIn('registration_id', $registrations->pluck('id'))
@@ -61,9 +72,9 @@ class AssessmentController extends Controller
         //     ->keyBy('criterion_id');
 
         $this->authorizeJuri($juri, $registration);
- 
+
         $registration->load('achievements');
- 
+
         $criteriaTree = Criteria::whereNull('parent_id')
             ->with(['children.children.children'])
             ->get();
@@ -106,7 +117,17 @@ class AssessmentController extends Controller
                 $request->notes ?? [],
                 $request->achievement_scores ?? []
             );
+
             $this->ahpCalculator->calculateFinalScore($registration);
+
+            // Pastikan registrasi ada di ranking/transparansi setelah dinilai.
+            if (in_array($registration->status, ['draft', 'submitted'])) {
+                $registration->update(['status' => 'verified']);
+            }
+
+            // Catatan: calculateFinalScore() sudah menyimpan nilai ke total_score_fakultas
+            // atau total_score_univ berdasarkan tahap registrasi, jadi tidak perlu
+            // update tambahan di sini.
 
             return redirect()->route('juri.assessments.index')->with('success', 'Nilai berhasil disimpan!');
         } catch (\Exception $e) {

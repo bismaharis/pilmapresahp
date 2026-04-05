@@ -88,6 +88,10 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_univ,admin_fakult
 
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+
+        Route::get('/pairwise-comparisons', [\App\Http\Controllers\PairwiseComparisonController::class, 'index'])->name('pairwise-comparisons.index');
+        Route::get('/pairwise-comparisons/{parentId}/edit', [\App\Http\Controllers\PairwiseComparisonController::class, 'edit'])->name('pairwise-comparisons.edit');
+        Route::put('/pairwise-comparisons/{parentId}', [\App\Http\Controllers\PairwiseComparisonController::class, 'update'])->name('pairwise-comparisons.update');
     });
 
 Route::middleware(['auth', 'verified', 'role:dosen'])

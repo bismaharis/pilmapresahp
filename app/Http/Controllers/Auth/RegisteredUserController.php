@@ -97,7 +97,7 @@ class RegisteredUserController extends Controller
                 'student_id' => $studentId,
                 'stage' => 'fakultas',
                 'status' => 'submitted',
-                'total_score_fakultas' => $faker->randomFloat(2, 50, 95),
+                'total_score_fakultas' => 0,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

@@ -62,10 +62,12 @@
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">Hierarki Bobot & Kriteria</h3>
                     </div>
-                    <button type="button" @click="openAddModal('', '')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow flex items-center text-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Tambah Kriteria Induk
-                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" @click="openAddModal('', '')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow flex items-center text-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Tambah Kriteria Induk
+                        </button>
+                    </div>
                 </div>
 
                 <div class="p-6 text-gray-900">
@@ -91,7 +93,11 @@
                                         <td class="px-6 py-3 text-center">{{ $root->max_score }}</td>
                                         <td class="px-6 py-3 text-center flex justify-center space-x-3">
                                             <button type="button" @click='openAddModal("{{ $root->id }}", @json($root->name))' class="text-green-600 hover:text-green-800" title="Tambah Sub"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
-                                            <button type="button" @click='openEditModal(@json($root))' class="text-blue-600 hover:text-blue-800" title="Edit"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                                @if($root->children->count() > 0)
+                                                    <a href="{{ route('admin.pairwise-comparisons.edit', $root->id) }}" class="text-blue-600 hover:text-blue-800" title="Edit & Atur Pairwise"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></a>
+                                                @else
+                                                    <button type="button" @click='openEditModal(@json($root))' class="text-blue-600 hover:text-blue-800" title="Edit"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                                                @endif
                                             <form action="{{ route('admin.criteria.destroy', $root->id) }}" method="POST" onsubmit="return confirm('Hapus kriteria ini?');" class="inline">@csrf @method('DELETE') <button type="submit" class="text-red-600 hover:text-red-800"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></form>
                                         </td>
                                     </tr>
@@ -106,7 +112,11 @@
                                             <td class="px-6 py-2 text-center">{{ $child->max_score }}</td>
                                             <td class="px-6 py-2 text-center flex justify-center space-x-3">
                                                 <button type="button" @click='openAddModal("{{ $child->id }}", @json($child->name))' class="text-green-500 hover:text-green-700" title="Tambah Sub"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
-                                                <button type="button" @click='openEditModal(@json($child))' class="text-blue-500 hover:text-blue-700" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                                                @if($child->children->count() > 0)
+                                                    <a href="{{ route('admin.pairwise-comparisons.edit', $child->id) }}" class="text-blue-500 hover:text-blue-700" title="Edit & Atur Pairwise"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></a>
+                                                @else
+                                                    <button type="button" @click='openEditModal(@json($child))' class="text-blue-500 hover:text-blue-700" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                                                @endif
                                                 <form action="{{ route('admin.criteria.destroy', $child->id) }}" method="POST" onsubmit="return confirm('Hapus?');" class="inline">@csrf @method('DELETE') <button type="submit" class="text-red-500 hover:text-red-700"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></form>
                                             </td>
                                         </tr>
@@ -121,7 +131,11 @@
                                                 <td class="px-6 py-2 text-center">{{ $grandChild->max_score }}</td>
                                                 <td class="px-6 py-2 text-center flex justify-center space-x-3">
                                                     <button type="button" @click='openAddModal("{{ $grandChild->id }}", @json($grandChild->name))' class="text-green-400 hover:text-green-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
-                                                    <button type="button" @click='openEditModal(@json($grandChild))' class="text-blue-400 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                                                    @if($grandChild->children->count() > 0)
+                                                        <a href="{{ route('admin.pairwise-comparisons.edit', $grandChild->id) }}" class="text-blue-400 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></a>
+                                                    @else
+                                                        <button type="button" @click='openEditModal(@json($grandChild))' class="text-blue-400 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                                                    @endif
                                                     <form action="{{ route('admin.criteria.destroy', $grandChild->id) }}" method="POST" onsubmit="return confirm('Hapus?');" class="inline">@csrf @method('DELETE') <button type="submit" class="text-red-400 hover:text-red-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></form>
                                                 </td>
                                             </tr>
@@ -135,7 +149,11 @@
                                                     <td class="px-6 py-1.5 text-center text-gray-600">{{ floatval($greatGrandChild->weight * 100) }}%</td>
                                                     <td class="px-6 py-1.5 text-center text-gray-600">{{ $greatGrandChild->max_score }}</td>
                                                     <td class="px-6 py-1.5 text-center flex justify-center space-x-3">
-                                                        <button type="button" @click='openEditModal(@json($greatGrandChild))' class="text-blue-300 hover:text-blue-500"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                                                        @if($greatGrandChild->children->count() > 0)
+                                                            <a href="{{ route('admin.pairwise-comparisons.edit', $greatGrandChild->id) }}" class="text-blue-300 hover:text-blue-500"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></a>
+                                                        @else
+                                                            <button type="button" @click='openEditModal(@json($greatGrandChild))' class="text-blue-300 hover:text-blue-500"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                                                        @endif
                                                         <form action="{{ route('admin.criteria.destroy', $greatGrandChild->id) }}" method="POST" onsubmit="return confirm('Hapus?');" class="inline">@csrf @method('DELETE') <button type="submit" class="text-red-300 hover:text-red-500"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></form>
                                                     </td>
                                                 </tr>

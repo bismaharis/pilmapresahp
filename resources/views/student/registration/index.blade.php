@@ -55,11 +55,7 @@
                         </div>
                     </div>
 
-                    @if(!$activePeriod)
-                        <div class="bg-red-50 border border-red-300 rounded p-3 md:p-4 text-red-700 text-xs md:text-sm">
-                            Periode pendaftaran belum dibuka atau sudah berakhir. Silakan hubungi admin fakultas.
-                        </div>
-                    @else
+                    @if($activePeriod || ($registration && $registration->stage === 'universitas'))
                     <div>
                         <h3 class="text-base md:text-lg font-medium text-gray-900 mb-2">
                             Berkas Persyaratan
@@ -194,7 +190,7 @@
                                         <div class="flex">
                                             <div class="ml-3">
                                                 <p class="text-sm text-gray-700">
-                                                    Persyaratan tahap Universitas (Poster & Video) hanya akan terbuka jika Anda dinyatakan 
+                                                    Persyaratan tahap Universitas hanya akan terbuka jika Anda dinyatakan 
                                                     <span class="font-bold">Lolos Seleksi Fakultas</span> oleh Panitia.
                                                 </p>
                                             </div>
@@ -203,12 +199,16 @@
                                 </div>
                             @endif
 
-                            <button
-                                type="submit"
-                                class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700"
-                            >
-                                Simpan Berkas
-                            </button>
+                            <div class="flex gap-4">
+                                <button
+                                    type="submit"
+                                    name="action"
+                                    value="save"
+                                    class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+                                >
+                                    Simpan Berkas
+                                </button>
+                            </div>
                         </form>
 
                         <div class="mt-8 border-t pt-4 flex justify-end">
@@ -218,6 +218,32 @@
                             >
                                 Lanjut: Isi Capaian Unggulan (CU) &rarr;
                             </a>
+                        </div>
+                    </div>
+                    @else
+                    <div class="bg-red-50 border border-red-300 rounded p-4 md:p-6">
+                        <div class="flex items-start mb-4">
+                            <svg class="w-6 h-6 text-red-600 mr-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                            <div>
+                                <h4 class="text-lg font-bold text-red-800 mb-2">Periode Pendaftaran Belum Dibuka</h4>
+                                <p class="text-red-700 mb-3">
+                                    Maaf, saat ini tidak ada periode pendaftaran yang aktif untuk Fakultas Anda. 
+                                    Periode pendaftaran belum dimulai atau sudah berakhir.
+                                </p>
+                                <p class="text-red-700 font-semibold">
+                                    Silakan hubungi admin Fakultas Anda untuk informasi lebih lanjut.
+                                </p>
+                                
+                                @if($activePeriod)
+                                <div class="mt-4 bg-red-100 p-3 rounded text-sm text-red-800">
+                                    <strong>Info Jadwal Pendaftaran:</strong><br>
+                                    Mulai: {{ $activePeriod->start_date->format('d M Y') }}<br>
+                                    Berakhir: {{ $activePeriod->end_date->format('d M Y') }}
+                                </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                     @endif

@@ -22,15 +22,29 @@ class RegistrationController extends Controller
 
         $activePeriod = PilmapresPeriod::getActivePeriodForFaculty($student->faculty_id);
 
-        // Hanya buat/ambil registration jika periode sedang berjalan
-        if ($activePeriod) {
+        // Cek apakah ada registration yang sudah ada
+        $existingRegistration = $student->registrations()
+            ->where('stage', 'universitas')
+            ->first();
+
+        if (! $existingRegistration) {
+            $existingRegistration = $student->registrations()->latest()->first();
+        }
+
+        // Hanya buat registration baru jika periode sedang berjalan DAN belum ada registration
+        if ($activePeriod && ! $existingRegistration) {
             $registration = Registration::firstOrCreate(
                 ['student_id' => $student->id, 'period_id' => $activePeriod->id],
                 ['status' => 'draft']
             );
         } else {
-            // Coba ambil registration terakhir untuk ditampilkan (read-only)
-            $registration = $student->registrations()->latest()->first();
+            // Gunakan registration yang sudah ada dan refresh dari database
+            $registration = $existingRegistration;
+        }
+
+        // Pastikan data fresh dari database
+        if ($registration) {
+            $registration = $registration->fresh();
         }
 
         return view('student.registration.index', compact('registration', 'student', 'activePeriod'));
@@ -57,17 +71,26 @@ class RegistrationController extends Controller
 
         $student = Auth::user()->student;
 
-        // Cek periode aktif — blokir jika tidak ada
+        // Cek periode aktif
         $activePeriod = PilmapresPeriod::getActivePeriodForFaculty($student->faculty_id);
 
-        if (! $activePeriod) {
-            return back()->with('error', 'Pendaftaran ditutup. Tidak ada periode seleksi yang sedang berjalan untuk fakultas Anda.');
+        // Cari registration dengan prioritas: universitas dulu, lalu latest
+        $registration = $student->registrations()
+            ->where('stage', 'universitas')
+            ->first();
+
+        if (! $registration) {
+            $registration = $student->registrations()->latest()->first();
         }
 
-        // Ambil registration milik mahasiswa untuk periode yang sedang aktif saja
-        $registration = Registration::where('student_id', $student->id)
-            ->where('period_id', $activePeriod->id)
-            ->firstOrFail();
+        if (! $registration) {
+            return back()->with('error', 'Tidak ada data pendaftaran yang ditemukan.');
+        }
+
+        // Blokir update jika tidak ada periode aktif DAN registration bukan di tahap universitas
+        if (! $activePeriod && $registration->stage !== 'universitas') {
+            return back()->with('error', 'Pendaftaran ditutup. Tidak ada periode seleksi yang sedang berjalan untuk fakultas Anda.');
+        }
 
         $dataToUpdate = [];
 
@@ -109,6 +132,6 @@ class RegistrationController extends Controller
 
         $registration->update($dataToUpdate);
 
-        return back()->with('success', 'Berkas pendaftaran berhasil diperbarui.');
+        return back()->with('success', 'Berkas pendaftaran berhasil disimpan.');
     }
 }
