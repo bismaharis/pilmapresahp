@@ -36,10 +36,10 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-            if ($request->user()->photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($request->user()->photo)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($request->user()->photo);
+            if ($request->user()->photo && \Illuminate\Support\Facades\Storage::disk(config('filesystems.default_public_disk'))->exists($request->user()->photo)) {
+                \Illuminate\Support\Facades\Storage::disk(config('filesystems.default_public_disk'))->delete($request->user()->photo);
             }
-            $path = $request->file('photo')->store('profile-photos', 'public');
+            $path = $request->file('photo')->store('profile-photos', config('filesystems.default_public_disk'));
             $request->user()->photo = $path;
         }
         $request->user()->update(['faculty_id' => $request->faculty_id]);

@@ -97,32 +97,32 @@ class RegistrationController extends Controller
         // Upload berkas FAKULTAS
         if ($request->hasFile('file_gk')) {
             if ($registration->file_gk) {
-                Storage::disk('public')->delete($registration->file_gk);
+                Storage::disk(config('filesystems.default_public_disk'))->delete($registration->file_gk);
             }
-            $dataToUpdate['file_gk'] = $request->file('file_gk')->store('files/gk', 'public');
+            $dataToUpdate['file_gk'] = $request->file('file_gk')->store('files/gk', config('filesystems.default_public_disk'));
         }
 
         if ($request->hasFile('file_transkrip')) {
             if ($registration->file_transkrip) {
-                Storage::disk('public')->delete($registration->file_transkrip);
+                Storage::disk(config('filesystems.default_public_disk'))->delete($registration->file_transkrip);
             }
-            $dataToUpdate['file_transkrip'] = $request->file('file_transkrip')->store('files/transkrip', 'public');
+            $dataToUpdate['file_transkrip'] = $request->file('file_transkrip')->store('files/transkrip', config('filesystems.default_public_disk'));
         }
 
         // Upload berkas UNIVERSITAS
         if ($registration->stage === 'universitas') {
             if ($request->hasFile('file_poster_gk')) {
                 if ($registration->file_poster_gk) {
-                    Storage::disk('public')->delete($registration->file_poster_gk);
+                    Storage::disk(config('filesystems.default_public_disk'))->delete($registration->file_poster_gk);
                 }
-                $dataToUpdate['file_poster_gk'] = $request->file('file_poster_gk')->store('files/posters', 'public');
+                $dataToUpdate['file_poster_gk'] = $request->file('file_poster_gk')->store('files/posters', config('filesystems.default_public_disk'));
             }
 
             if ($request->hasFile('file_poster_diri')) {
                 if ($registration->file_poster_diri) {
-                    Storage::disk('public')->delete($registration->file_poster_diri);
+                    Storage::disk(config('filesystems.default_public_disk'))->delete($registration->file_poster_diri);
                 }
-                $dataToUpdate['file_poster_diri'] = $request->file('file_poster_diri')->store('files/posters', 'public');
+                $dataToUpdate['file_poster_diri'] = $request->file('file_poster_diri')->store('files/posters', config('filesystems.default_public_disk'));
             }
 
             if ($request->filled('video_link')) {
