@@ -34,7 +34,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-center">
                                         @if($reg->file_gk)
-                                            <a href="{{ Storage::url($reg->file_gk) }}" target="_blank" class="text-blue-600 hover:underline">Lihat Naskah</a>
+                                            <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($reg->file_gk) }}" target="_blank" class="text-blue-600 hover:underline">Lihat Naskah</a>
                                         @else
                                             <span class="text-red-500 text-xs">Belum Upload</span>
                                         @endif
