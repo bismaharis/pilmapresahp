@@ -170,7 +170,7 @@
                                                     </span>
                                                 </td>
                                                 <td class="px-2 md:px-4 py-3">
-                                                    <a href="{{ Storage::url($cu->file_proof) }}" target="_blank" class="text-blue-600 hover:underline text-xs md:text-sm">Lihat</a>
+                                                    <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($cu->file_proof) }}" target="_blank" class="text-blue-600 hover:underline text-xs md:text-sm">Lihat</a>
                                                 </td>
                                                 <td class="px-2 md:px-4 py-3 text-right">
                                                     <form action="{{ route('student.achievements.destroy', $cu->id) }}" method="POST" onsubmit="return confirm('Hapus item ini?')">

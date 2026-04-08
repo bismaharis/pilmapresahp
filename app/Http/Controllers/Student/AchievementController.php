@@ -67,7 +67,7 @@ class AchievementController extends Controller
             ['stage' => 'fakultas', 'status' => 'draft']
         );
 
-        $path = $request->file('file_proof')->store('proofs', 'public');
+        $path = $request->file('file_proof')->store('proofs', config('filesystems.default_public_disk'));
 
         try {
             $this->achievementService->create($registration->id, array_merge(
