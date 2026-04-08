@@ -41,7 +41,7 @@
                             <div>
                                 <span class="text-gray-700 font-semibold block">Naskah Gagasan Kreatif</span>
                                 @if($registration->file_gk)
-                                    <a href="{{ Storage::url($registration->file_gk) }}" target="_blank" class="inline-flex mt-1 items-center px-3 py-1 bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition">
+                                    <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($registration->file_gk) }}" target="_blank" class="inline-flex mt-1 items-center px-3 py-1 bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition">
                                         📄 Buka PDF
                                     </a>
                                 @else
@@ -52,7 +52,7 @@
                             @if($registration->file_poster_gk)
                             <div>
                                 <span class="text-gray-700 font-semibold block">Poster GK</span>
-                                <a href="{{ Storage::url($registration->file_poster_gk) }}" target="_blank" class="inline-flex mt-1 items-center px-3 py-1 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition">
+                                <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($registration->file_poster_gk) }}" target="_blank" class="inline-flex mt-1 items-center px-3 py-1 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition">
                                     🖼️ Lihat Poster
                                 </a>
                             </div>
@@ -79,7 +79,7 @@
                                     <p class="text-gray-600"><span class="font-semibold text-gray-500">Pencapaian:</span> {{ $ach->capaian }}</p>
                                     <p class="text-gray-600"><span class="font-semibold text-gray-500">Tahun:</span> {{ $ach->year }}</p>
                                     @if($ach->file_proof)
-                                        <a href="{{ Storage::url($ach->file_proof) }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 hover:underline font-semibold text-xs">
+                                        <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($ach->file_proof) }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 hover:underline font-semibold text-xs">
                                             Lihat Sertifikat/Bukti &rarr;
                                         </a>
                                     @endif
@@ -165,7 +165,7 @@
                                                                                 </div>
                                                                             </td>
                                                                             <td class="py-4 text-center align-middle">
-                                                                                <a href="{{ Storage::url($ach->file_proof) }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-xs font-bold transition border border-blue-200 shadow-sm">
+                                                                                <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($ach->file_proof) }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-xs font-bold transition border border-blue-200 shadow-sm">
                                                                                     Lihat Berkas
                                                                                 </a>
                                                                             </td>
