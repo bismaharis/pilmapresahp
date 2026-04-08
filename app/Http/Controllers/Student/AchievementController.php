@@ -8,6 +8,7 @@ use App\Models\Registration;
 use App\Services\AchievementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AchievementController extends Controller
 {
@@ -70,7 +71,7 @@ class AchievementController extends Controller
         // $path = $request->file('file_proof')->store('proofs', config('filesystems.default_public_disk'));
 
         $disk = config('filesystems.default_public_disk');
-        $path = $request->file('file_proof')->storeOn($disk, 'proofs');
+        $path = Storage::disk($disk)->putFile('proofs', $request->file('file_proof'));
 
         try {
             $this->achievementService->create($registration->id, array_merge(
