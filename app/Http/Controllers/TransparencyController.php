@@ -98,16 +98,15 @@ class TransparencyController extends Controller
 
         $scoreColumn = $stage === 'fakultas' ? 'total_score_fakultas' : 'total_score_univ';
 
-        // Tidak pakai filter ->where('stage', $stage) karena peserta yang sudah
-        // didelegasi ke universitas stage-nya berubah, padahal nilainya sudah ada
-        // di total_score_fakultas. Filter menggunakan scoreColumn NOT NULL saja.
         $query = Registration::with(['student.user', 'student.faculty'])
-            ->whereIn('status', ['submitted', 'verified', 'approved'])
             ->whereNotNull('file_gk')
             ->whereNotNull('file_transkrip')
-            ->whereNotNull($scoreColumn);  // ← hanya pastikan sudah punya skor
+            ->where(function ($q) use ($scoreColumn) {
+                $q->whereIn('status', ['submitted', 'verified', 'approved'])
+                    ->orWhereNotNull($scoreColumn);
+            });
 
-        // Untuk tahap universitas tetap filter stage = universitas
+        // Untuk tahap universitas, hanya peserta yang sudah pada stage universitas.
         if ($stage === 'universitas') {
             $query->where('stage', 'universitas');
         }

@@ -21,6 +21,8 @@ class Registration extends Model
         'file_poster_gk',
         'file_poster_diri',
         'video_link',
+        'submitted_fakultas_at',
+        'submitted_universitas_at',
         'total_score_fakultas',
         'total_score_univ',
     ];

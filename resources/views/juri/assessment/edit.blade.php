@@ -79,8 +79,8 @@
                                     <p class="text-gray-600"><span class="font-semibold text-gray-500">Pencapaian:</span> {{ $ach->capaian }}</p>
                                     <p class="text-gray-600"><span class="font-semibold text-gray-500">Tahun:</span> {{ $ach->year }}</p>
                                     @if($ach->file_proof)
-                                        <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($ach->file_proof) }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 hover:underline font-semibold text-xs">
-                                            Lihat Sertifikat/Bukti &rarr;
+                                        <a href="{{ '/storage/' . ltrim($ach->file_proof, '/') }}" download class="inline-block mt-2 text-blue-600 hover:text-blue-800 hover:underline font-semibold text-xs">
+                                            Download Sertifikat/Bukti &rarr;
                                         </a>
                                     @endif
                                 </div>
@@ -125,7 +125,7 @@
                                                     @endphp
                                                     
                                                     <div class="mb-6 border border-gray-300 rounded-lg overflow-hidden shadow-sm">
-                                                        <div class="bg-gray-200 px-4 py-3 font-bold flex justify-between items-center border-b border-gray-300">
+                                                        <div class="bg-gray-200 p-2 font-bold flex justify-between items-center border-b border-gray-300">
                                                             <span class="text-gray-800">{{ $kategori->name }}</span>
                                                             <div class="flex items-center gap-3">
                                                                 @if(isset($existingScores[$kategori->id]) && $existingScores[$kategori->id] > 0)
@@ -133,7 +133,7 @@
                                                                         Tersimpan: {{ $existingScores[$kategori->id] }}
                                                                     </span>
                                                                 @endif
-                                                                <span class="text-sm bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full shadow-inner border border-yellow-300">
+                                                                <span class="text-sm text-slate-800 px-3 py-1">
                                                                     Total Skor Kategori: <span id="total-{{ $kategori->id }}" class="text-lg font-black">0.00</span>
                                                                 </span>
                                                             </div>
@@ -145,8 +145,8 @@
                                                             <table class="min-w-full text-sm text-left text-gray-800 border-t border-gray-200">
                                                                 <thead class="bg-gray-50 border-b border-gray-300">
                                                                     <tr>
-                                                                        <th class="px-4 py-3 w-3/5 text-gray-600">Detail Capaian & Prestasi</th>
-                                                                        <th class="px-4 py-3 text-center text-gray-600">Bukti</th>
+                                                                        <th class="px-4 py-3 text-gray-600">Detail Capaian & Prestasi</th>
+                                                                        {{-- <th class="px-4 py-3 text-center text-gray-600">Bukti</th> --}}
                                                                         <th class="px-4 py-3 text-center w-32 text-gray-600">Nilai Juri</th>
                                                                     </tr>
                                                                 </thead>
@@ -155,47 +155,61 @@
                                                                         <tr class="hover:bg-blue-50 transition">
                                                                             <td class="pl-4 py-4">
                                                                                 <strong class="text-gray-900 text-base block mb-2">{{ $ach->name }}</strong>
-                                                                                <div class="text-xs text-gray-600 grid grid-cols-2 gap-y-2 gap-x-4 bg-gray-50 p-3 rounded border border-gray-100">
+                                                                                <div class="text-xs text-gray-600 grid grid-cols-2 gap-y-2 gap-x-4p-3">
                                                                                     <div><span class="font-semibold text-gray-500 block mb-0.5">Capaian:</span> {{ $ach->capaian ?? '-' }}</div>
                                                                                     <div><span class="font-semibold text-gray-500 block mb-0.5">Tingkat:</span> <span class="text-blue-600 font-bold">{{ $ach->level ?? '-' }}</span></div>
                                                                                     <div><span class="font-semibold text-gray-500 block mb-0.5">Tahun/Tipe:</span> {{ $ach->year ?? '-' }} ({{ $ach->type ?? '-' }})</div>
                                                                                     <div><span class="font-semibold text-gray-500 block mb-0.5">Peserta:</span> {{ $ach->jumlah_peserta ?? '-' }}</div>
                                                                                     <div><span class="font-semibold text-gray-500 block mb-0.5">Penghargaan:</span> {{ $ach->jumlah_penghargaan ?? '-' }}</div>
+                                                                                    <div>
+                                                                                        @if($ach->file_proof)
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onclick="openFileViewer(@js('/storage/' . ltrim($ach->file_proof, '/')))"
+                                                                                                class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-xs font-bold transition border border-blue-200 shadow-sm"
+                                                                                            >
+                                                                                                Lihat Berkas
+                                                                                            </button>
+                                                                                        @else
+                                                                                            <span class="text-gray-400 italic">Berkas tidak tersedia</span>
+                                                                                        @endif
+                                                                                    </div>
                                                                                     <div class="col-span-2"><span class="font-semibold text-gray-500 block mb-0.5">Penyelenggara:</span> {{ $ach->organizer ?? '-' }}</div>
+                                                                                    
                                                                                 </div>
                                                                             </td>
-                                                                            <td class="py-4 text-center align-middle">
+                                                                            {{-- <td class="py-4 text-center align-middle">
                                                                                 <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($ach->file_proof) }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-xs font-bold transition border border-blue-200 shadow-sm">
                                                                                     Lihat Berkas
                                                                                 </a>
-                                                                            </td>
+                                                                            </td> --}}
                                                                             <td class="px-4 py-4 align-middle">
                                                                                 <div class="flex flex-col items-center">
-                                                                                    <span class="text-[10px] font-bold text-red-500 mb-1 tracking-wider uppercase">Max: {{ $kategori->max_score }}</span>
+
                                                                                     
                                                                                     <input type="number" name="achievement_scores[{{ $ach->id }}]" 
                                                                                            value="{{ old('achievement_scores.'.$ach->id, 0) }}" 
                                                                                            min="0" max="50" step="0.01" 
                                                                                            class="w-full text-center px-2 py-2 border-2 border-solid border-gray-300 rounded-md text-gray-900 font-bold text-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-inner cu-input-{{ $kategori->id }}"
                                                                                            oninput="calculateTotalCU({{ $kategori->id }})">
-
+                                                                                    <span class="text-[10px] font-bold text-red-500 tracking-wider">Max: {{ $kategori->max_score }}</span>
                                                                                     {{-- Rekomendasi nilai berdasarkan tingkat sertifikat --}}
                                                                                     @php
                                                                                         $levelRaw = strtolower(trim($ach->level ?? ''));
                                                                                         $rekomendasiMap = [
-                                                                                            'perguruan tinggi' => ['label' => 'Perguruan Tinggi', 'range' => '0 – 10', 'color' => 'bg-gray-100 text-gray-600 border-gray-300'],
-                                                                                            'provinsi'         => ['label' => 'Provinsi',         'range' => '10 – 20', 'color' => 'bg-blue-50 text-blue-700 border-blue-200'],
-                                                                                            'nasional'         => ['label' => 'Nasional',         'range' => '20 – 30', 'color' => 'bg-green-50 text-green-700 border-green-200'],
-                                                                                            'regional'         => ['label' => 'Regional',         'range' => '30 – 40', 'color' => 'bg-yellow-50 text-yellow-700 border-yellow-300'],
-                                                                                            'internasional'    => ['label' => 'Internasional',    'range' => '40 – 50', 'color' => 'bg-purple-50 text-purple-700 border-purple-200'],
+                                                                                            'perguruan tinggi' => ['label' => 'Perguruan Tinggi', 'range' => '0 – 10', 'color' => 'text-gray-600 border-gray-300'],
+                                                                                            'provinsi'         => ['label' => 'Provinsi',         'range' => '10 – 20', 'color' => 'text-blue-700 border-blue-200'],
+                                                                                            'nasional'         => ['label' => 'Nasional',         'range' => '20 – 30', 'color' => 'text-green-700 border-green-200'],
+                                                                                            'regional'         => ['label' => 'Regional',         'range' => '30 – 40', 'color' => 'text-yellow-700 border-yellow-300'],
+                                                                                            'internasional'    => ['label' => 'Internasional',    'range' => '40 – 50', 'color' => 'text-purple-700 border-purple-200'],
                                                                                         ];
                                                                                         $rekomendasi = $rekomendasiMap[$levelRaw] ?? null;
                                                                                     @endphp
 
                                                                                     @if($rekomendasi)
-                                                                                        <div class="mt-2 w-full text-center px-2 py-1.5 rounded border {{ $rekomendasi['color'] }} text-[10px] leading-tight">
-                                                                                            <span class="font-bold block uppercase tracking-wide">💡 Rekomendasi</span>
-                                                                                            <span class="font-black text-sm">{{ $rekomendasi['range'] }}</span>
+                                                                                        <div class="text-[10px] font-bold tracking-wider {{ $rekomendasi['color'] }} text-[10px] leading-tight">
+                                                                                            {{-- <span class="font-bold block uppercase tracking-wide">Rekomendasi</span> --}}
+                                                                                            <span class="text-[10px] font-bold">{{ $rekomendasi['range'] }}</span>
                                                                                         </div>
                                                                                     @endif
                                                                                 </div>
@@ -300,7 +314,38 @@
         </div>
     </div>
 
+    <div id="file-viewer-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60" onclick="closeFileViewer()"></div>
+        <div class="relative mx-auto mt-6 h-[90vh] w-[95vw] max-w-6xl rounded-lg bg-white shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                <h4 class="text-sm font-bold text-gray-800">Preview Berkas</h4>
+                <button type="button" onclick="closeFileViewer()" class="rounded-md px-2 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                    Tutup
+                </button>
+            </div>
+            <iframe id="file-viewer-frame" class="h-[calc(90vh-57px)] w-full rounded-b-lg" title="Preview Berkas"></iframe>
+        </div>
+    </div>
+
     <script>
+        function openFileViewer(fileUrl) {
+            const modal = document.getElementById('file-viewer-modal');
+            const frame = document.getElementById('file-viewer-frame');
+
+            frame.src = fileUrl;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeFileViewer() {
+            const modal = document.getElementById('file-viewer-modal');
+            const frame = document.getElementById('file-viewer-frame');
+
+            frame.src = '';
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
         function calculateTotalCU(kategoriId) {
             let inputs = document.querySelectorAll('.cu-input-' + kategoriId);
             let total = 0;
@@ -323,5 +368,11 @@
                 @endif
             @endforeach
         };
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeFileViewer();
+            }
+        });
     </script>
 </x-app-layout>

@@ -64,8 +64,8 @@
                                         <option value="">-- Pilih Tingkat --</option>
                                         <option value="Perguruan Tinggi" {{ old('level') == 'Perguruan Tinggi' ? 'selected' : '' }}>Perguruan Tinggi</option>
                                         <option value="Provinsi" {{ old('level') == 'Provinsi' ? 'selected' : '' }}>Provinsi</option>
-                                        <option value="Regional" {{ old('level') == 'Regional' ? 'selected' : '' }}>Regional</option>
                                         <option value="Nasional" {{ old('level') == 'Nasional' ? 'selected' : '' }}>Nasional</option>
+                                        <option value="Regional" {{ old('level') == 'Regional' ? 'selected' : '' }}>Regional</option>
                                         <option value="Internasional" {{ old('level') == 'Internasional' ? 'selected' : '' }}>Internasional</option>
                                     </select>
                                     @error('level') <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p> @enderror
@@ -165,7 +165,9 @@
                                                 <td class="px-2 md:px-4 py-3 hidden md:table-cell">
                                                     <span class="px-2 py-1 rounded text-xs 
                                                         {{ $cu->level == 'Internasional' ? 'bg-purple-100 text-purple-800' : 
-                                                           ($cu->level == 'Nasional' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800') }}">
+                                                           ($cu->level == 'Regional' ? 'bg-yellow-100 text-yellow-800' : 
+                                                           ($cu->level == 'Nasional' ? 'bg-green-100 text-green-800' : 
+                                                           ($cu->level == 'Provinsi' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') )) }}">
                                                         {{ $cu->level }}
                                                     </span>
                                                 </td>

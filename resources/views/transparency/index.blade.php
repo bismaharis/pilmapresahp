@@ -19,17 +19,17 @@
         @endif --}}
 
         <div class="bg-white shadow-sm rounded-lg p-4 md:p-6">
-            <h2 class="text-lg md:text-xl font-bold mb-4 text-gray-800">Leaderboard Peserta</h2>
+            <h2 class="text-lg md:text-xl font-bold mb-4 text-blue-800">Leaderboard Peserta</h2>
 
             <div class="flex flex-col gap-4 md:gap-0 md:flex-row md:justify-between md:items-center mb-4 border-b pb-4">
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('transparency.index', ['stage' => 'fakultas']) }}" class="px-3 md:px-4 py-2 rounded-md text-sm md:text-base font-bold {{ $stage == 'fakultas' ? 'bg-cyan-500 text-white shadow' : 'text-gray-500 hover:bg-gray-100' }}">Tingkat Fakultas</a>
-                    <a href="{{ route('transparency.index', ['stage' => 'universitas']) }}" class="px-3 md:px-4 py-2 rounded-md text-sm md:text-base font-bold {{ $stage == 'universitas' ? 'bg-cyan-500 text-white shadow' : 'text-gray-500 hover:bg-gray-100' }}">Tingkat Universitas</a>
+                    <a href="{{ route('transparency.index', ['stage' => 'fakultas']) }}" class="px-3 md:px-4 py-2 rounded-md text-sm md:text-base font-bold {{ $stage == 'fakultas' ? 'bg-blue-700 text-white shadow-sm' : 'text-blue-500 hover:bg-blue-100' }}">Tingkat Fakultas</a>
+                    <a href="{{ route('transparency.index', ['stage' => 'universitas']) }}" class="px-3 md:px-4 py-2 rounded-md text-sm md:text-base font-bold {{ $stage == 'universitas' ? 'bg-blue-700 text-white shadow-sm' : 'text-blue-500 hover:bg-blue-100' }}">Tingkat Universitas</a>
                 </div>
 
                 @if($role !== 'mahasiswa')
                 <a href="{{ route('transparency.pdf', ['stage' => $stage, 'faculty_id' => request('faculty_id')]) }}" target="_blank"
-                   class="inline-flex items-center justify-center px-3 md:px-4 py-2 bg-red-600 border border-transparent rounded-md font-bold text-xs uppercase tracking-widest text-white hover:bg-red-700 shadow-sm transition flex-shrink-0 gap-1">
+                   class="inline-flex items-center justify-center px-3 md:px-4 py-2 bg-red-700 border border-transparent rounded-md font-bold text-xs uppercase tracking-widest text-white hover:bg-red-800 shadow-sm transition flex-shrink-0 gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     <span class="hidden md:inline">Cetak Leaderboard (PDF)</span>
                     <span class="inline md:hidden">Cetak PDF</span>
@@ -57,7 +57,7 @@
                     @if(request('stage'))
                         <input type="hidden" name="stage" value="{{ request('stage') }}">
                     @endif
-                    <select name="faculty_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 text-xs md:text-sm font-semibold text-gray-700 transition" onchange="this.form.submit()">
+                    <select name="faculty_id" class="block w-full rounded-md border-slate-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 text-xs md:text-sm font-semibold text-slate-700 transition" onchange="this.form.submit()">
                         <option value="">-- Tampilkan Semua Fakultas --</option>
                         @foreach($faculties as $faculty)
                             <option value="{{ $faculty->id }}" {{ request('faculty_id') == $faculty->id ? 'selected' : '' }}>
@@ -90,7 +90,7 @@
                                     </div>
                                 </td>
                                 <td class="p-2 md:p-3 text-center hidden md:table-cell">{{ $rank->student->prodi }}</td>
-                                <td class="p-2 md:p-3 text-center text-blue-600 text-sm md:text-base font-bold">
+                                <td class="p-2 md:p-3 text-center text-slate-700 text-sm md:text-base font-bold">
                                     {{ number_format($stage == 'fakultas' ? $rank->total_score_fakultas : $rank->total_score_univ, 2) }}
                                 </td>
                                 <td class="p-2 md:p-3 text-center">
@@ -106,7 +106,7 @@
                                     @endphp
 
                                     @if($canView)
-                                        <a href="{{ route('transparency.show', ['id' => $rank->id, 'stage' => $stage]) }}" class="inline-block bg-cyan-100 text-cyan-700 px-3 py-1 rounded text-xs font-bold hover:bg-cyan-200 border border-cyan-300">
+                                        <a href="{{ route('transparency.show', ['id' => $rank->id, 'stage' => $stage]) }}" class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold hover:bg-blue-200 border border-blue-300">
                                             Buka Rincian
                                         </a>
                                     @else

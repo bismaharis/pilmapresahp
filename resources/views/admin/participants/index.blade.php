@@ -38,6 +38,16 @@
             
             <x-auth-session-status class="mb-4" :status="session('success')" />
 
+            @if ($errors->any())
+                <div class="mb-4 p-4 bg-red-50 border border-red-300 rounded-lg">
+                    <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                 
                 <form method="GET" action="{{ url()->current() }}" class="w-full sm:w-1/2 flex items-center space-x-3">

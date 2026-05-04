@@ -83,6 +83,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_univ,admin_fakult
 
         Route::get('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'index'])->name('periods.index');
         Route::post('/periods', [\App\Http\Controllers\Admin\PeriodController::class, 'store'])->name('periods.store');
+        Route::get('/periods/{period}/history', [\App\Http\Controllers\Admin\PeriodController::class, 'show'])->name('periods.show');
+        Route::get('/periods/{period}/history/export-excel', [\App\Http\Controllers\Admin\PeriodController::class, 'exportExcel'])->name('periods.export_excel');
         Route::put('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'update'])->name('periods.update');
         Route::delete('/periods/{period}', [\App\Http\Controllers\Admin\PeriodController::class, 'destroy'])->name('periods.destroy');
 

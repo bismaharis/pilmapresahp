@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Faculty;
 use App\Models\Registration;
+use App\Services\UniversityDelegationNotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -147,7 +148,7 @@ class RankingController extends Controller
         // return view('admin.ranking.index', compact('rankings', 'stage', 'scoreColumn', 'faculties'));
     }
 
-    public function delegate(Registration $registration)
+    public function delegate(Registration $registration, UniversityDelegationNotificationService $notificationService)
     {
         $user = Auth::user();
         if ($user->role === 'admin_fakultas' &&
@@ -155,6 +156,8 @@ class RankingController extends Controller
             abort(403, 'Anda tidak berhak mendelegasikan peserta dari fakultas lain.');
         }
         $registration->update(['stage' => 'universitas']);
+
+        $notificationService->sendParticipantDelegatedToUniversity($registration);
 
         return back()->with('success', 'Peserta berhasil didelegasikan ke tingkat Universitas!');
     }

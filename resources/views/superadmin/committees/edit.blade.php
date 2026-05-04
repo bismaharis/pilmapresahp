@@ -24,6 +24,17 @@
                             <option value="admin_univ" {{ $user->role == 'admin_univ' ? 'selected' : '' }}>Panitia / Admin Universitas</option>
                         </select>
                     </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium">Fakultas (wajib untuk Admin Fakultas)</label>
+                        <select name="faculty_id" class="w-full mt-1 rounded-md border-gray-300">
+                            <option value="">-- Pilih Fakultas --</option>
+                            @foreach($faculties as $faculty)
+                                <option value="{{ $faculty->id }}" {{ (string) $user->faculty_id === (string) $faculty->id ? 'selected' : '' }}>
+                                    {{ $faculty->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="mb-6 p-4 bg-yellow-50 rounded border border-yellow-200">
                         <label class="block text-sm font-medium text-yellow-800">Ganti Password (Opsional)</label>
                         <p class="text-xs text-yellow-600 mb-2">Kosongkan jika tidak ingin mengubah password.</p>

@@ -12,21 +12,30 @@
                     @csrf
                     <div class="mb-4">
                         <label class="block text-sm font-medium">Nama Lengkap</label>
-                        <input type="text" name="name" class="w-full mt-1 rounded-md border-gray-300" required>
+                        <input type="text" name="name" class="w-full mt-1 border rounded-md border-gray-300" required>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium">Email</label>
-                        <input type="email" name="email" class="w-full mt-1 rounded-md border-gray-300" required>
+                        <input type="email" name="email" class="w-full mt-1 border rounded-md border-gray-300" required>
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium">Password Login</label>
-                        <input type="password" name="password" class="w-full mt-1 rounded-md border-gray-300" required minlength="8">
+                        <input type="password" name="password" class="w-full mt-1 border rounded-md border-gray-300" required minlength="8">
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium">Tingkatan Kewenangan (Role)</label>
-                        <select name="role" class="w-full mt-1 rounded-md border-gray-300" required>
+                        <select name="role" class="w-full mt-1 border rounded-md border-gray-300" required>
                             <option value="admin_fakultas">Panitia / Admin Fakultas</option>
                             <option value="admin_univ">Panitia / Admin Universitas</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium">Fakultas (wajib untuk Admin Fakultas)</label>
+                        <select name="faculty_id" class="w-full mt-1 border rounded-md border-gray-300">
+                            <option value="">-- Pilih Fakultas --</option>
+                            @foreach($faculties as $faculty)
+                                <option value="{{ $faculty->id }}">{{ $faculty->name }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-md hover:bg-blue-700">Simpan Panitia</button>

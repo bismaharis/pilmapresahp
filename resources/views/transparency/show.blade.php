@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center space-x-2 md:space-x-4">
-            <a href="{{ route('transparency.index', ['stage' => $stage]) }}" class="text-gray-500 hover:text-cyan-600 flex-shrink-0">
+            <a href="{{ route('transparency.index', ['stage' => $stage]) }}" class="text-slate-500 hover:text-slate-700 flex-shrink-0">
                 <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
             <span class="text-sm md:text-base truncate">Detail Transparansi Penilaian AHP (Tahap {{ ucfirst($stage) }})</span>
@@ -19,25 +19,25 @@
     <div class="space-y-4 md:space-y-6">
 
         {{-- HEADER KARTU PESERTA --}}
-        <div class="bg-white shadow-sm rounded-lg p-4 md:p-6 border-t-4 border-cyan-500">
+        <div class="bg-white shadow-sm rounded-lg p-4 md:p-6 border-t-4 border-blue-400">
             <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                 <div class="min-w-0">
                     <h2 class="text-xl md:text-2xl font-bold text-gray-800">{{ $registration->student->user->name }}</h2>
-                    <p class="text-xs md:text-sm text-gray-500 mt-1">{{ $registration->student->prodi }} &bull; Tahap: <span class="font-bold text-cyan-600 uppercase">{{ $stage }}</span></p>
+                    <p class="text-xs md:text-sm text-slate-500 mt-1">{{ $registration->student->prodi }} &bull; Tahap: <span class="font-bold text-slate-700 uppercase">{{ $stage }}</span></p>
                 </div>
-                <div class="text-center md:text-right bg-blue-50 p-3 md:p-4 rounded-lg border border-blue-100 flex-shrink-0">
+                <div class="text-center md:text-right bg-blue-100 p-3 md:p-4 rounded-lg border border-slate-200 flex-shrink-0">
                     <p class="text-xs text-blue-600 font-bold uppercase tracking-widest">Total Skor Akhir</p>
-                    <p class="text-2xl md:text-3xl font-extrabold text-blue-700">
+                    <p class="text-2xl md:text-3xl font-extrabold text-blue-800">
                         {{ number_format($stage == 'fakultas' ? $registration->total_score_fakultas : $registration->total_score_univ, 2) }}
                     </p>
-                    <p class="text-xs text-gray-400 mt-1">Rata-rata dari juri yang telah menilai</p>
+                    <p class="text-xs text-blue-400 mt-1">Rata-rata dari juri yang telah menilai</p>
                 </div>
             </div>
         </div>
 
         {{-- INFO AHP --}}
-        <div class="bg-cyan-50 border border-cyan-200 rounded-lg px-5 py-4 text-xs text-cyan-800 space-y-1">
-            <p class="font-bold text-sm text-cyan-900">Cara Membaca Tabel AHP</p>
+        <div class="bg-blue-50 border border-slate-200 rounded-lg px-5 py-4 text-xs text-slate-700 space-y-1">
+            <p class="font-bold text-sm text-slate-800">Cara Membaca Tabel AHP</p>
             <p><span class="font-semibold">Bobot Global</span> = perkalian bobot dari root ke node (mis. GK 35% × Naskah 50% × Substansi 70% = 12.25%). Jumlah bobot global semua leaf = 100%.</p>
             <p><span class="font-semibold">Skor Terbobot</span> = (Nilai Mentah ÷ Nilai Maks) × 100 × Bobot Global. Jumlah seluruh skor terbobot = Total Skor Akhir.</p>
             <p><span class="font-semibold">CU</span> dihitung dengan rumus khusus: (Total Raw ÷ 500) × 100 × 35%.</p>
@@ -54,12 +54,12 @@
                 @endphp
 
                 <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-                    <div class="bg-gradient-to-r from-cyan-700 to-blue-700 px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                    <div class="bg-blue-800 px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                         <div>
                             <h3 class="text-base md:text-lg font-bold text-white">Rincian Nilai Per Juri</h3>
-                            <p class="text-xs text-cyan-200 mt-0.5">Transparansi penilaian dari juri yang telah menilai &bull; {{ $juriList->count() }} juri</p>
+                            <p class="text-xs text-slate-300 mt-0.5">Transparansi penilaian dari juri yang telah menilai &bull; {{ $juriList->count() }} juri</p>
                         </div>
-                        <span class="bg-blue-400 text-blue-900 text-xs font-bold px-3 py-1 rounded-full self-start md:self-auto">✓ Tersedia</span>
+                        <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1 rounded-full self-start md:self-auto">✓ Tersedia</span>
                     </div>
 
                     {{-- Tab Buttons --}}
@@ -69,8 +69,8 @@
                                 <button onclick="showJuriTab('tab-juri-{{ $juri['id'] }}')"
                                     id="btn-tab-juri-{{ $juri['id'] }}"
                                     class="juri-tab-btn flex items-center space-x-1 md:space-x-2 px-3 py-2 rounded-md text-xs md:text-sm font-semibold border transition flex-shrink-0
-                                           {{ $idx === 0 ? 'bg-cyan-600 text-white border-cyan-600 shadow' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100' }}">
-                                    <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs {{ $idx === 0 ? 'bg-white/20' : 'bg-gray-200' }}">
+                                         {{ $idx === 0 ? 'bg-blue-700 text-white border-blue-700 shadow-sm' : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-100' }}">
+                                     <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs {{ $idx === 0 ? 'bg-white/15' : 'bg-blue-200 text-blue-600' }}">
                                         {{ strtoupper(substr($juri['nama'], 0, 1)) }}
                                     </span>
                                     <span>{{ $juri['nama'] }}</span>
@@ -78,8 +78,8 @@
                             @endforeach
                             <button onclick="showJuriTab('tab-matriks-rata')"
                                 id="btn-tab-matriks-rata"
-                                class="juri-tab-btn flex items-center space-x-1 md:space-x-2 px-3 py-2 rounded-md text-xs md:text-sm font-semibold border transition bg-white text-gray-600 border-gray-300 hover:bg-gray-100 flex-shrink-0 md:ml-auto">
-                                <span class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">&#x2248;</span>
+                                class="juri-tab-btn flex items-center space-x-1 md:space-x-2 px-3 py-2 rounded-md text-xs md:text-sm font-semibold border transition bg-white text-slate-600 border-slate-300 hover:bg-slate-100 flex-shrink-0 md:ml-auto">
+                                <span class="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs">&#x2248;</span>
                                 <span>Matriks Rata-rata</span>
                             </button>
                         </div>
@@ -95,7 +95,7 @@
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs border-collapse">
                                     <thead>
-                                        <tr class="bg-gray-100 text-gray-600 uppercase tracking-wide text-[11px]">
+                                        <tr class="bg-slate-100 text-slate-700 uppercase tracking-wide text-[11px]">
                                             <th class="px-3 md:px-6 py-3 text-left">Hierarki Kriteria</th>
                                             <th class="px-3 md:px-6 py-3 text-center whitespace-nowrap">Bobot Lokal</th>
                                             <th class="px-3 md:px-6 py-3 text-center whitespace-nowrap">Bobot Global</th>
@@ -125,15 +125,15 @@
                                                 }
                                             @endphp
                                             {{-- Baris Root --}}
-                                            <tr class="bg-gray-900">
-                                                <td class="px-3 md:px-6 py-3 font-black text-white uppercase tracking-wider text-xs">{{ $root->name }}</td>
-                                                <td class="px-3 md:px-6 py-3 text-center text-cyan-300 font-bold text-xs">{{ $root->weight * 100 }}%</td>
-                                                <td class="px-3 md:px-6 py-3 text-center text-cyan-300 font-bold text-xs">{{ $root->weight * 100 }}%</td>
-                                                <td class="px-3 md:px-6 py-3 text-center text-gray-400 text-xs italic">
+                                            <tr class="bg-slate-200 border-y border-slate-300">
+                                                <td class="px-3 md:px-6 py-3 font-black text-slate-800 uppercase tracking-wider text-xs">{{ $root->name }}</td>
+                                                <td class="px-3 md:px-6 py-3 text-center text-slate-700 font-bold text-xs">{{ $root->weight * 100 }}%</td>
+                                                <td class="px-3 md:px-6 py-3 text-center text-slate-700 font-bold text-xs">{{ $root->weight * 100 }}%</td>
+                                                <td class="px-3 md:px-6 py-3 text-center text-slate-500 text-xs italic">
                                                     {{ $isCuRoot ? number_format($cuRaw, 2) . ' / 500' : '—' }}
                                                 </td>
-                                                <td class="px-3 md:px-6 py-3 text-center text-gray-400 text-xs italic">—</td>
-                                                <td class="px-3 md:px-6 py-3 text-center text-yellow-300 font-black text-sm">{{ number_format($rootAccum, 2) }}</td>
+                                                <td class="px-3 md:px-6 py-3 text-center text-slate-500 text-xs italic">—</td>
+                                                <td class="px-3 md:px-6 py-3 text-center text-slate-800 font-black text-sm">{{ number_format($rootAccum, 2) }}</td>
                                             </tr>
 
                                             @foreach($root->children as $sub)
@@ -149,20 +149,20 @@
                                                         $subAccum = accumScore($sub, $assessmentsByCriteria, true, $root->type) * $root->weight;
                                                     }
                                                 @endphp
-                                                <tr class="bg-gray-700 hover:bg-gray-600">
-                                                    <td class="px-3 md:px-6 py-2 pl-6 md:pl-10 font-bold text-gray-100 text-xs">
-                                                        <svg class="w-3 h-3 inline text-cyan-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                                <tr class="bg-slate-100 hover:bg-slate-200 border-b border-slate-200">
+                                                    <td class="px-3 md:px-6 py-2 pl-6 md:pl-10 font-bold text-slate-700 text-xs">
+                                                        <svg class="w-3 h-3 inline text-slate-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                                         {{ $sub->name }}
                                                     </td>
-                                                    <td class="px-3 md:px-6 py-2 text-center text-gray-300 text-xs whitespace-nowrap">{{ number_format($sub->weight * 100, 2) }}%</td>
-                                                    <td class="px-3 md:px-6 py-2 text-center text-cyan-300 font-semibold text-xs whitespace-nowrap">{{ fmtWeight($subGw, 1, $isGkRoot) }}</td>
-                                                    <td class="px-3 md:px-6 py-2 text-center text-xs whitespace-nowrap {{ $isSubParent && !$isCuRoot ? 'text-gray-500 italic' : 'text-white font-semibold' }}">
+                                                    <td class="px-3 md:px-6 py-2 text-center text-slate-600 text-xs whitespace-nowrap">{{ number_format($sub->weight * 100, 2) }}%</td>
+                                                    <td class="px-3 md:px-6 py-2 text-center text-slate-700 font-semibold text-xs whitespace-nowrap">{{ fmtWeight($subGw, 1, $isGkRoot) }}</td>
+                                                    <td class="px-3 md:px-6 py-2 text-center text-xs whitespace-nowrap {{ $isSubParent && !$isCuRoot ? 'text-slate-400 italic' : 'text-slate-800 font-semibold' }}">
                                                         {{ ($isSubParent && !$isCuRoot) ? '—' : fmt($nilaiSub, 1, $isGkRoot) }}
                                                     </td>
-                                                    <td class="px-3 md:px-6 py-2 text-center text-gray-400 text-xs whitespace-nowrap">
+                                                    <td class="px-3 md:px-6 py-2 text-center text-slate-500 text-xs whitespace-nowrap">
                                                         {{ (!$isSubParent && !$isCuRoot) ? $sub->max_score : '—' }}
                                                     </td>
-                                                    <td class="px-3 md:px-6 py-2 text-center text-blue-300 font-bold text-xs whitespace-nowrap">{{ fmt($subAccum, 1, $isGkRoot) }}</td>
+                                                    <td class="px-3 md:px-6 py-2 text-center text-slate-700 font-bold text-xs whitespace-nowrap">{{ fmt($subAccum, 1, $isGkRoot) }}</td>
                                                 </tr>
 
                                                 @foreach($sub->children as $subsub)
@@ -182,14 +182,14 @@
                                                             {{ $subsub->name }}
                                                         </td>
                                                         <td class="px-3 md:px-6 py-2 text-center text-gray-600 text-xs whitespace-nowrap">{{ number_format($subsub->weight * 100, 2) }}%</td>
-                                                        <td class="px-3 md:px-6 py-2 text-center text-cyan-700 font-semibold text-xs whitespace-nowrap">{{ fmtWeight($subsubGw, 2, $isGkRoot) }}</td>
+                                                        <td class="px-3 md:px-6 py-2 text-center text-slate-700 font-semibold text-xs whitespace-nowrap">{{ fmtWeight($subsubGw, 2, $isGkRoot) }}</td>
                                                         <td class="px-3 md:px-6 py-2 text-center text-xs whitespace-nowrap {{ $isSubSubParent ? 'text-gray-400 italic' : 'text-gray-800' }}">
                                                             {{ $isSubSubParent ? '—' : fmt($nilaiSubSub, 2, $isGkRoot) }}
                                                         </td>
                                                         <td class="px-3 md:px-6 py-2 text-center text-gray-500 text-xs whitespace-nowrap">
                                                             {{ !$isSubSubParent ? $subsub->max_score : '—' }}
                                                         </td>
-                                                        <td class="px-3 md:px-6 py-2 text-center text-blue-600 font-semibold text-xs whitespace-nowrap">{{ fmt($subsubAccum, 2, $isGkRoot) }}</td>
+                                                        <td class="px-3 md:px-6 py-2 text-center text-slate-700 font-semibold text-xs whitespace-nowrap">{{ fmt($subsubAccum, 2, $isGkRoot) }}</td>
                                                     </tr>
 
                                                     @foreach($subsub->children as $l4)
@@ -204,10 +204,10 @@
                                                                 {{ $l4->name }}
                                                             </td>
                                                             <td class="px-3 md:px-6 py-2 text-center text-gray-500 text-[11px] whitespace-nowrap">{{ number_format($l4->weight * 100, 4) }}%</td>
-                                                            <td class="px-3 md:px-6 py-2 text-center text-cyan-600 font-semibold text-[11px] whitespace-nowrap">{{ fmtWeight($l4Gw, 3, true) }}</td>
+                                                            <td class="px-3 md:px-6 py-2 text-center text-slate-600 font-semibold text-[11px] whitespace-nowrap">{{ fmtWeight($l4Gw, 3, true) }}</td>
                                                             <td class="px-3 md:px-6 py-2 text-center text-gray-700 text-[11px] whitespace-nowrap">{{ number_format($nilaiL4, 2) }}</td>
                                                             <td class="px-3 md:px-6 py-2 text-center text-gray-500 text-[11px] whitespace-nowrap">{{ $l4->max_score }}</td>
-                                                            <td class="px-3 md:px-6 py-2 text-center text-blue-500 text-[11px] whitespace-nowrap">{{ number_format($l4Accum, 4) }}</td>
+                                                            <td class="px-3 md:px-6 py-2 text-center text-slate-600 text-[11px] whitespace-nowrap">{{ number_format($l4Accum, 4) }}</td>
                                                         </tr>
                                                     @endforeach
                                                 @endforeach
@@ -219,13 +219,13 @@
 
                             {{-- Catatan Juri --}}
                             @if($notesJuri->isNotEmpty())
-                                <div class="px-4 md:px-6 py-4 bg-amber-50 border-t border-amber-200">
-                                    <p class="text-xs font-bold text-amber-700 uppercase tracking-wide mb-3">&#128172; Catatan Evaluasi dari {{ $namaJuri }}</p>
+                                <div class="px-4 md:px-6 py-4 bg-slate-50 border-t border-slate-200">
+                                    <p class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-3">&#128172; Catatan Evaluasi dari {{ $namaJuri }}</p>
                                     <div class="space-y-2">
                                         @foreach($notesJuri as $noteAssessment)
                                             <div class="flex items-start space-x-3">
-                                                <span class="text-xs font-semibold text-amber-700 shrink-0 w-36">{{ $noteAssessment->criteria?->name ?? 'Umum' }}:</span>
-                                                <p class="text-xs text-gray-700 italic">"{{ $noteAssessment->notes }}"</p>
+                                                <span class="text-xs font-semibold text-slate-700 shrink-0 w-36">{{ $noteAssessment->criteria?->name ?? 'Umum' }}:</span>
+                                                <p class="text-xs text-slate-600 italic">"{{ $noteAssessment->notes }}"</p>
                                             </div>
                                         @endforeach
                                     </div>
@@ -236,9 +236,9 @@
 
                     {{-- Tab Panel: Matriks Rata-rata --}}
                     <div id="tab-matriks-rata" class="juri-tab-panel hidden">
-                        <div class="px-4 md:px-6 py-3 bg-blue-50 border-b border-blue-200 flex items-center gap-2">
-                            <span class="text-sm font-bold text-blue-800">Matriks Hasil Keputusan AHP</span>
-                            <span class="text-xs text-blue-500 hidden md:inline">&mdash; Nilai rata-rata dari semua juri, digunakan untuk perhitungan AHP final</span>
+                        <div class="px-4 md:px-6 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                            <span class="text-sm font-bold text-slate-800">Matriks Hasil Keputusan AHP</span>
+                            <span class="text-xs text-slate-500 hidden md:inline">&mdash; Nilai rata-rata dari semua juri, digunakan untuk perhitungan AHP final</span>
                         </div>
                         @include('transparency._matriks_table', [
                             'assessments' => $registration->assessments,
@@ -252,10 +252,10 @@
 
         {{-- MATRIKS RATA-RATA untuk MAHASISWA --}}
         @if($role === 'mahasiswa')
-            <div class="bg-white shadow-sm rounded-lg overflow-hidden border-t-4 border-blue-600">
+            <div class="bg-white shadow-sm rounded-lg overflow-hidden border-t-4 border-slate-500">
                 <div class="px-4 md:px-6 py-4 border-b border-gray-200">
                     <h3 class="text-base md:text-lg font-bold text-gray-800">Matriks Hasil Keputusan AHP</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Nilai akhir berdasarkan rata-rata penilaian dari juri yang telah menilai</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Nilai akhir berdasarkan rata-rata penilaian dari juri yang telah menilai</p>
                 </div>
                 @include('transparency._matriks_table', [
                     'assessments' => $registration->assessments,
@@ -270,14 +270,14 @@
         function showJuriTab(tabId) {
             document.querySelectorAll('.juri-tab-panel').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.juri-tab-btn').forEach(el => {
-                el.classList.remove('bg-cyan-600', 'text-white', 'border-cyan-600', 'shadow');
-                el.classList.add('bg-white', 'text-gray-600', 'border-gray-300');
+                el.classList.remove('bg-slate-700', 'text-white', 'border-slate-700', 'shadow-sm');
+                el.classList.add('bg-white', 'text-slate-600', 'border-slate-300');
             });
             document.getElementById(tabId)?.classList.remove('hidden');
             const btn = document.getElementById('btn-' + tabId);
             if (btn) {
-                btn.classList.add('bg-cyan-600', 'text-white', 'border-cyan-600', 'shadow');
-                btn.classList.remove('bg-white', 'text-gray-600', 'border-gray-300');
+                btn.classList.add('bg-slate-700', 'text-white', 'border-slate-700', 'shadow-sm');
+                btn.classList.remove('bg-white', 'text-slate-600', 'border-slate-300');
             }
         }
     </script>

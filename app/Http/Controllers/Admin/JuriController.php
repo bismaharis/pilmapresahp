@@ -21,6 +21,10 @@ class JuriController extends Controller
     {
         $user = Auth::user();
         if ($user->role === 'admin_fakultas') {
+            if ($user->faculty_id === null) {
+                abort(403, 'Akun admin fakultas Anda belum terhubung ke fakultas. Hubungi Super Admin untuk memperbarui data fakultas akun Anda.');
+            }
+
             return (int) $user->faculty_id;
         }
 
@@ -73,6 +77,7 @@ class JuriController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'dosen',
+            'faculty_id' => (int) $request->faculty_id,
         ]);
 
         Lecturer::create([
@@ -118,6 +123,7 @@ class JuriController extends Controller
 
         $user->name = $request->name;
         $user->email = $request->email;
+        $user->faculty_id = (int) $request->faculty_id;
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }

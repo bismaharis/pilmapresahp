@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Faculty;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,11 +17,12 @@ class CommitteeController extends Controller
 
         // Filter berdasarkan Dropdown
         if ($request->filled('faculty_id')) {
-            $query->where('faculty_id', $request->faculty_id); 
+            $query->where('faculty_id', $request->faculty_id);
         }
 
         // Eksekusi query
         $committees = $query->get();
+
         return view('superadmin.committees.index', compact('committees', 'faculties'));
     }
 
@@ -32,15 +33,19 @@ class CommitteeController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'role' => 'required|in:admin_univ,admin_fakultas',
-            'faculty_id' => 'nullable|exists:faculties,id' 
+            'faculty_id' => 'nullable|required_if:role,admin_fakultas|exists:faculties,id',
         ]);
+
+        $facultyId = $request->role === 'admin_fakultas'
+            ? (int) $request->faculty_id
+            : null;
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
-            'faculty_id' => $request->faculty_id 
+            'faculty_id' => $facultyId,
         ]);
 
         return back()->with('success', 'Akun Panitia berhasil ditambahkan!');
@@ -49,12 +54,14 @@ class CommitteeController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
+
         return back()->with('success', 'Akun Panitia berhasil dihapus!');
     }
 
     public function edit(User $user)
     {
-        $faculties = Faculty::all(); 
+        $faculties = Faculty::all();
+
         return view('superadmin.committees.edit', compact('user', 'faculties'));
     }
 
@@ -64,19 +71,23 @@ class CommitteeController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'role' => 'required|in:admin_univ,admin_fakultas',
-            'password' => 'nullable|string|min:8', 
-            'faculty_id' => 'nullable|exists:faculties,id' 
+            'password' => 'nullable|string|min:8',
+            'faculty_id' => 'nullable|required_if:role,admin_fakultas|exists:faculties,id',
         ]);
+
+        $facultyId = $request->role === 'admin_fakultas'
+            ? (int) $request->faculty_id
+            : null;
 
         $user->name = $request->name;
         $user->email = $request->email;
         $user->role = $request->role;
-        $user->faculty_id = $request->faculty_id; 
-        
+        $user->faculty_id = $facultyId;
+
         if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
-        
+
         $user->save();
 
         return redirect()->route('superadmin.committees.index')->with('success', 'Data Panitia berhasil diperbarui!');

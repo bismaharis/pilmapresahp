@@ -130,6 +130,12 @@ class RegistrationController extends Controller
             }
         }
 
+        if ($registration->stage === 'universitas') {
+            $dataToUpdate['submitted_universitas_at'] = $registration->submitted_universitas_at ?? now();
+        } else {
+            $dataToUpdate['submitted_fakultas_at'] = $registration->submitted_fakultas_at ?? now();
+        }
+
         $registration->update($dataToUpdate);
 
         return back()->with('success', 'Berkas pendaftaran berhasil disimpan.');
