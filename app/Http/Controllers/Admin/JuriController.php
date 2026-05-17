@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Faculty;
 use App\Models\Lecturer;
 use App\Models\User;
+use App\Services\UniversityDelegationNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class JuriController extends Controller
 {
@@ -33,26 +35,46 @@ class JuriController extends Controller
 
     public function index(Request $request)
     {
+        $request->validate([
+            'faculty_id' => ['nullable', 'integer', 'exists:faculties,id'],
+            'stage' => ['nullable', 'in:fakultas,universitas'],
+        ]);
+
+        $user = Auth::user();
         $adminFacultyId = $this->getAdminFacultyId();
+        $stage = $request->query('stage', 'fakultas');
 
         // admin_fakultas: faculties hanya miliknya sendiri, tidak perlu dropdown
         $faculties = $adminFacultyId
-            ? Faculty::where('id', $adminFacultyId)->get()
+            ? Faculty::query()->whereKey($adminFacultyId)->get()
             : Faculty::all();
 
-        $query = User::where('role', 'dosen')->with('lecturer.faculty');
+        $query = User::query()->where('role', 'dosen')->with('lecturer.faculty');
 
         if ($adminFacultyId) {
             // paksa filter ke fakultas admin yang login
             $query->whereHas('lecturer', fn ($q) => $q->where('faculty_id', $adminFacultyId));
+            $query->whereHas('lecturer', fn ($q) => $q->where('is_univ_judge', false));
+            $stage = 'fakultas';
         } elseif ($request->filled('faculty_id')) {
             // super_admin / admin_univ: filter opsional dari dropdown
             $query->whereHas('lecturer', fn ($q) => $q->where('faculty_id', $request->faculty_id));
         }
 
-        $juries = $query->get();
+        if (in_array($user->role, ['super_admin', 'admin_univ'], true)) {
+            if ($stage === 'universitas') {
+                $query->whereHas('lecturer', fn ($q) => $q->where('is_univ_judge', true));
+            } else {
+                $query->whereHas('lecturer', fn ($q) => $q->where('is_univ_judge', false));
+            }
+        }
 
-        return view('admin.juries.index', compact('juries', 'faculties', 'adminFacultyId'));
+        $juries = $query
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.juries.index', compact('juries', 'faculties', 'adminFacultyId', 'stage'));
     }
 
     public function store(Request $request)
@@ -64,6 +86,7 @@ class JuriController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'nip' => 'nullable|string|max:50',
+            'unit_kerja' => 'nullable|string|max:255',
             'faculty_id' => 'required|exists:faculties,id',
         ]);
 
@@ -83,6 +106,7 @@ class JuriController extends Controller
         Lecturer::create([
             'user_id' => $user->id,
             'nip' => $request->nip,
+            'unit_kerja' => $request->unit_kerja,
             'faculty_id' => $request->faculty_id,
         ]);
 
@@ -97,7 +121,7 @@ class JuriController extends Controller
         $adminFacultyId = $this->getAdminFacultyId();
 
         $faculties = $adminFacultyId
-            ? Faculty::where('id', $adminFacultyId)->get()
+            ? Faculty::query()->whereKey($adminFacultyId)->get()
             : Faculty::all();
 
         return view('admin.juries.edit', compact('user', 'faculties', 'adminFacultyId'));
@@ -113,6 +137,7 @@ class JuriController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'nip' => 'nullable|string|max:50',
+            'unit_kerja' => 'required|string|max:255',
             'faculty_id' => 'required|exists:faculties,id',
             'password' => 'nullable|string|min:8',
         ]);
@@ -131,7 +156,11 @@ class JuriController extends Controller
 
         $user->lecturer()->updateOrCreate(
             ['user_id' => $user->id],
-            ['nip' => $request->nip, 'faculty_id' => $request->faculty_id]
+            [
+                'nip' => $request->nip,
+                'unit_kerja' => $request->unit_kerja,
+                'faculty_id' => $request->faculty_id,
+            ]
         );
 
         return redirect()->route('admin.juries.index')->with('success', 'Data Juri berhasil diperbarui!');
@@ -140,9 +169,46 @@ class JuriController extends Controller
     public function destroy(User $user)
     {
         $this->authorizeJuri($user);
-        $user->delete();
+        User::query()->whereKey($user->id)->delete();
 
         return back()->with('success', 'Akun Juri berhasil dihapus!');
+    }
+
+    public function toggleDelegation(Lecturer $lecturer, UniversityDelegationNotificationService $notificationService)
+    {
+        $user = Auth::user();
+
+        if (! in_array($user->role, ['super_admin', 'admin_univ'], true)) {
+            abort(403);
+        }
+
+        $lecturer->loadMissing('user');
+
+        if (! $lecturer->user || $lecturer->user->role !== 'dosen') {
+            abort(404);
+        }
+
+        $lecturer->update([
+            'is_univ_judge' => ! $lecturer->is_univ_judge,
+        ]);
+
+        if ($lecturer->is_univ_judge) {
+            try {
+                $notificationService->sendJuryDelegatedToUniversity($lecturer);
+            } catch (\Throwable $exception) {
+                Log::error('Gagal mengirim email delegasi juri universitas.', [
+                    'lecturer_id' => $lecturer->id,
+                    'user_id' => $lecturer->user_id,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                return back()->with('warning', 'Status juri berhasil diperbarui, tetapi email notifikasi gagal dikirim.');
+            }
+        }
+
+        $status = $lecturer->is_univ_judge ? 'dinaikkan menjadi Juri Universitas' : 'diturunkan menjadi Juri Fakultas';
+
+        return back()->with('success', 'Status Juri berhasil '.$status.'!');
     }
 
     /**
@@ -150,6 +216,10 @@ class JuriController extends Controller
      */
     private function authorizeJuri(User $user): void
     {
+        if ($user->role !== 'dosen') {
+            abort(404);
+        }
+
         $adminFacultyId = $this->getAdminFacultyId();
         if (! $adminFacultyId) {
             return;

@@ -8,6 +8,22 @@
     <div class="py-6 md:py-12">
         <div class="max-w-7xl mx-auto px-3 md:px-6 lg:px-8">
             <x-auth-session-status class="mb-4" :status="session('success')" />
+            <x-auth-session-status class="mb-4" :status="session('error')" />
+
+            @php
+                $fileGkButtonClass = $registration && $registration->file_gk
+                    ? 'file:bg-green-600 hover:file:bg-green-700'
+                    : 'file:bg-blue-600 hover:file:bg-blue-700';
+                $fileTranskripButtonClass = $registration && $registration->file_transkrip
+                    ? 'file:bg-green-600 hover:file:bg-green-700'
+                    : 'file:bg-blue-600 hover:file:bg-blue-700';
+                $filePosterGkButtonClass = $registration && $registration->file_poster_gk
+                    ? 'file:bg-green-600 hover:file:bg-green-700'
+                    : 'file:bg-blue-600 hover:file:bg-blue-700';
+                $filePosterDiriButtonClass = $registration && $registration->file_poster_diri
+                    ? 'file:bg-green-600 hover:file:bg-green-700'
+                    : 'file:bg-blue-600 hover:file:bg-blue-700';
+            @endphp
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4 md:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -107,14 +123,14 @@
                                         <input
                                         type="file"
                                         name="file_gk"
-                                        class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-sm file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:transition-colors @if($registration && $registration->file_gk) file:bg-green-600 hover:file:bg-green-700 @else file:bg-blue-600 hover:file:bg-blue-700 @endif"
+                                        class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-sm file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:transition-colors {{ $fileGkButtonClass }}"
                                         />
                                     </div>
                                 </div>
                                 @error('file_gk')
                                 <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p>
                                 @enderror
-                                <p class="text-xs text-gray-500 italic">Format PDF. Max 10MB.</p>
+                                <p class="text-xs text-gray-500 italic">Format PDF. Max 5MB.</p>
                                 @if($registration && $registration->file_gk)
                                     <p class="text-xs font-semibold text-green-700 mb-1 flex items-center gap-1">
                                         
@@ -131,14 +147,14 @@
                                         <input
                                         type="file"
                                         name="file_transkrip"
-                                        class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-sm file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:transition-colors @if($registration && $registration->file_transkrip) file:bg-green-600 hover:file:bg-green-700 @else file:bg-blue-600 hover:file:bg-blue-700 @endif"
+                                        class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-sm file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:transition-colors {{ $fileTranskripButtonClass }}"
                                         />
                                     </div>
                                 </div>
                                 @error('file_transkrip')
                                 <p class="text-red-500 text-xs mt-1 font-bold">{{ $message }}</p>
                                 @enderror
-                                <p class="text-xs text-gray-500 mt-1 italic">Format PDF. Max 10MB.</p>
+                                <p class="text-xs text-gray-500 mt-1 italic">Format PDF. Max 5MB.</p>
                                 @if($registration && $registration->file_transkrip)
                                     <p class="text-xs font-semibold text-green-700 mb-1 flex items-center gap-1">
                                         
@@ -168,7 +184,7 @@
                                         <div class="mt-1">
                                             <div class="@if($registration->file_poster_gk) rounded-lg pt-1 pb-1 @endif">
                                                 <input type="file" name="file_poster_gk"
-                                                class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-sm file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:transition-colors @if($registration->file_poster_gk) file:bg-green-600 hover:file:bg-green-700 @else file:bg-blue-600 hover:file:bg-blue-700 @endif">
+                                                class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-sm file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:transition-colors {{ $filePosterGkButtonClass }}">
                                             </div>
                                         </div>
                                         @error('file_poster_gk')
@@ -189,7 +205,7 @@
                                         <div class="mt-1">
                                             <div class="@if($registration->file_poster_diri)  rounded-lg pt-1 pb-1 @endif">
                                                 <input type="file" name="file_poster_diri"
-                                                class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-sm file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:transition-colors @if($registration->file_poster_diri) file:bg-green-600 hover:file:bg-green-700 @else file:bg-blue-600 hover:file:bg-blue-700 @endif">
+                                                class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-sm file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:transition-colors {{ $filePosterDiriButtonClass }}">
                                             </div>
                                         </div>
                                         @error('file_poster_diri')

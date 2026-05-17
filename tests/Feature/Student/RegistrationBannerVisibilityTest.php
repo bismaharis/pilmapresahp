@@ -49,6 +49,17 @@ function createStudentRegistrationContext(array $registrationAttributes = []): a
     return compact('faculty', 'user', 'student', 'period', 'registration');
 }
 
+function createActiveUniversityPeriod(string $year = '2026'): PilmapresPeriod
+{
+    return PilmapresPeriod::create([
+        'faculty_id' => null,
+        'year' => $year,
+        'is_active' => true,
+        'start_date' => now()->subDays(3)->toDateString(),
+        'end_date' => now()->addDays(3)->toDateString(),
+    ]);
+}
+
 test('banner fakultas tidak muncul sebelum simpan berkas', function () {
     $context = createStudentRegistrationContext();
 
@@ -97,6 +108,8 @@ test('banner universitas hanya muncul setelah simpan berkas tahap universitas', 
         'submitted_fakultas_at' => now(),
     ]);
 
+    createActiveUniversityPeriod();
+
     $beforeSaveResponse = $this->actingAs($context['user'])
         ->get(route('student.registration.index'));
 
@@ -118,3 +131,22 @@ test('banner universitas hanya muncul setelah simpan berkas tahap universitas', 
     $afterSaveResponse->assertSee('Anda telah terdaftar — Tahap Universitas');
 }
 );
+
+test('submit tahap universitas ditolak ketika periode universitas tidak aktif', function () {
+    $context = createStudentRegistrationContext([
+        'stage' => 'universitas',
+        'submitted_fakultas_at' => now(),
+    ]);
+
+    $response = $this->actingAs($context['user'])
+        ->from(route('student.registration.index'))
+        ->put(route('student.registration.update'), [
+            'video_link' => 'https://youtube.com/watch?v=test12345',
+        ]);
+
+    $response
+        ->assertRedirect(route('student.registration.index'))
+        ->assertSessionHas('error', 'Pendaftaran ditutup. Tidak ada periode seleksi tingkat universitas yang sedang berjalan.');
+
+    expect($context['registration']->fresh()->submitted_universitas_at)->toBeNull();
+});

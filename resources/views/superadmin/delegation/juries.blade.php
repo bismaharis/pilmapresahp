@@ -8,6 +8,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <x-auth-session-status class="mb-4" :status="session('success')" />
+            <x-auth-session-status class="mb-4" :status="session('warning')" />
 
             <div class="mb-4 flex justify-between items-center">
                 <div class="flex space-x-2">
@@ -105,6 +106,10 @@
                         @endforelse
                     </tbody>
                 </table>
+
+                <div class="mt-4">
+                    {{ $juries->links() }}
+                </div>
             </div>
         </div>
     </div>

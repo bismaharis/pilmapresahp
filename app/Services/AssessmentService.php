@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Assessment;
 use App\Models\Achievement;
+use App\Models\Assessment;
 use App\Models\Criteria;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -18,33 +18,46 @@ class AssessmentService
             // Nilai per sertifikat disimpan HANYA di tabel assessments milik
             // juri ini. Tabel achievements.score TIDAK disentuh agar nilai
             // antar juri tidak saling menimpa (fix bug #4).
-            if (!empty($achievementScores)) {
+            if (! empty($achievementScores)) {
                 $cuSums = [];
+                $categoryAchievementScores = [];
+
+                $achievements = Achievement::query()
+                    ->where('registration_id', $registrationId)
+                    ->get()
+                    ->keyBy('id');
 
                 foreach ($achievementScores as $achievementId => $scoreValue) {
-                    $achievement = Achievement::find($achievementId);
-                    if (!$achievement) continue;
+                    $achievement = $achievements->get((int) $achievementId);
+                    if (! $achievement) {
+                        continue;
+                    }
 
+                    $normalizedScore = max(0, min(50, (float) ($scoreValue ?? 0)));
                     $cat = $achievement->category;
-                    $cuSums[$cat] = ($cuSums[$cat] ?? 0) + ($scoreValue ?? 0);
+                    $cuSums[$cat] = ($cuSums[$cat] ?? 0) + $normalizedScore;
+                    $categoryAchievementScores[$cat][(string) $achievement->id] = $normalizedScore;
                 }
 
-                $cuCriteriaRoot = Criteria::where('type', 'cu')->whereNull('parent_id')->first();
+                $cuCriteriaRoot = Criteria::query()->where('type', 'cu')->where('parent_id', '=', null)->first();
 
                 if ($cuCriteriaRoot) {
-                    $categories = Criteria::where('parent_id', $cuCriteriaRoot->id)->get();
+                    $categories = Criteria::query()->where('parent_id', $cuCriteriaRoot->id)->get();
 
                     foreach ($categories as $cat) {
-                        $totalScore       = $cuSums[$cat->name] ?? 0;
-                        $finalScore       = min($totalScore, $cat->max_score);
+                        $totalScore = $cuSums[$cat->name] ?? 0;
+                        $finalScore = min($totalScore, $cat->max_score);
+                        $cuDetailsPayload = json_encode([
+                            'achievement_scores' => $categoryAchievementScores[$cat->name] ?? [],
+                        ]);
 
                         Assessment::updateOrCreate(
                             [
                                 'registration_id' => $registrationId,
-                                'lecturer_id'     => $lecturerId,
-                                'criteria_id'     => $cat->id,
+                                'lecturer_id' => $lecturerId,
+                                'criteria_id' => $cat->id,
                             ],
-                            ['score' => $finalScore, 'notes' => $notes[$cat->id] ?? null],
+                            ['score' => $finalScore, 'notes' => $cuDetailsPayload],
                         );
                     }
                 }
@@ -55,8 +68,8 @@ class AssessmentService
                 Assessment::updateOrCreate(
                     [
                         'registration_id' => $registrationId,
-                        'lecturer_id'     => $lecturerId,
-                        'criteria_id'     => $criteriaId,
+                        'lecturer_id' => $lecturerId,
+                        'criteria_id' => $criteriaId,
                     ],
                     [
                         'score' => $scoreValue ?? 0,
@@ -67,14 +80,18 @@ class AssessmentService
 
             // ── Notes untuk kriteria root/parent (tidak punya input score) ─
             foreach ($notes as $criteriaId => $noteText) {
-                if (empty($noteText)) continue;
-                if (array_key_exists($criteriaId, $scores)) continue; // sudah ditangani atas
+                if (empty($noteText)) {
+                    continue;
+                }
+                if (array_key_exists($criteriaId, $scores)) {
+                    continue;
+                } // sudah ditangani atas
 
                 Assessment::updateOrCreate(
                     [
                         'registration_id' => $registrationId,
-                        'lecturer_id'     => $lecturerId,
-                        'criteria_id'     => $criteriaId,
+                        'lecturer_id' => $lecturerId,
+                        'criteria_id' => $criteriaId,
                     ],
                     ['score' => 0, 'notes' => $noteText]
                 );

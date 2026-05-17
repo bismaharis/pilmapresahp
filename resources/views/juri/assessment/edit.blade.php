@@ -49,11 +49,31 @@
                                 @endif
                             </div>
 
+                            <div>
+                                <span class="text-gray-700 font-semibold block">Transkrip Nilai</span>
+                                @if($registration->file_transkrip)
+                                    <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($registration->file_transkrip) }}" target="_blank" class="inline-flex mt-1 items-center px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full hover:bg-emerald-200 transition">
+                                        📑 Buka Transkrip
+                                    </a>
+                                @else
+                                    <span class="text-gray-400 italic">Belum tersedia</span>
+                                @endif
+                            </div>
+
                             @if($registration->file_poster_gk)
                             <div>
                                 <span class="text-gray-700 font-semibold block">Poster GK</span>
                                 <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($registration->file_poster_gk) }}" target="_blank" class="inline-flex mt-1 items-center px-3 py-1 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition">
                                     🖼️ Lihat Poster
+                                </a>
+                            </div>
+                            @endif
+
+                            @if($registration->file_poster_diri)
+                            <div>
+                                <span class="text-gray-700 font-semibold block">Poster Diri</span>
+                                <a href="{{ Storage::disk(config('filesystems.default_public_disk'))->url($registration->file_poster_diri) }}" target="_blank" class="inline-flex mt-1 items-center px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200 transition">
+                                    🙋 Lihat Poster Diri
                                 </a>
                             </div>
                             @endif
@@ -188,7 +208,7 @@
 
                                                                                     
                                                                                     <input type="number" name="achievement_scores[{{ $ach->id }}]" 
-                                                                                           value="{{ old('achievement_scores.'.$ach->id, 0) }}" 
+                                                                                        value="{{ old('achievement_scores.'.$ach->id, $existingAchievementScores[$ach->id] ?? 0) }}" 
                                                                                            min="0" max="50" step="0.01" 
                                                                                            class="w-full text-center px-2 py-2 border-2 border-solid border-gray-300 rounded-md text-gray-900 font-bold text-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-inner cu-input-{{ $kategori->id }}"
                                                                                            oninput="calculateTotalCU({{ $kategori->id }})">
@@ -316,14 +336,17 @@
 
     <div id="file-viewer-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60" onclick="closeFileViewer()"></div>
-        <div class="relative mx-auto mt-6 h-[90vh] w-[95vw] max-w-6xl rounded-lg bg-white shadow-2xl">
+        <div class="relative mx-auto mt-8 h-[70vh] w-[90vw] max-w-3xl rounded-lg bg-white shadow-2xl md:h-[75vh] md:w-[75vw]">
             <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
                 <h4 class="text-sm font-bold text-gray-800">Preview Berkas</h4>
-                <button type="button" onclick="closeFileViewer()" class="rounded-md px-2 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-                    Tutup
-                </button>
+                <div class="flex items-center gap-2">
+                    <a id="file-viewer-open-new-tab" href="#" target="_blank" rel="noopener" class="rounded-md px-2 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-800">Buka tab baru</a>
+                    <button type="button" onclick="closeFileViewer()" class="rounded-md px-2 py-1 text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                        Tutup
+                    </button>
+                </div>
             </div>
-            <iframe id="file-viewer-frame" class="h-[calc(90vh-57px)] w-full rounded-b-lg" title="Preview Berkas"></iframe>
+            <iframe id="file-viewer-frame" class="h-[calc(70vh-57px)] w-full rounded-b-lg md:h-[calc(75vh-57px)]" title="Preview Berkas"></iframe>
         </div>
     </div>
 
@@ -331,8 +354,10 @@
         function openFileViewer(fileUrl) {
             const modal = document.getElementById('file-viewer-modal');
             const frame = document.getElementById('file-viewer-frame');
+            const openNewTabLink = document.getElementById('file-viewer-open-new-tab');
 
             frame.src = fileUrl;
+            openNewTabLink.href = fileUrl;
             modal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
         }
@@ -340,8 +365,10 @@
         function closeFileViewer() {
             const modal = document.getElementById('file-viewer-modal');
             const frame = document.getElementById('file-viewer-frame');
+            const openNewTabLink = document.getElementById('file-viewer-open-new-tab');
 
             frame.src = '';
+            openNewTabLink.href = '#';
             modal.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
         }

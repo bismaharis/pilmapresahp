@@ -89,7 +89,19 @@
                     @foreach($assessmentsByLecturer as $lecturerId => $assessmentsByCriteria)
                         @php
                             $namaJuri  = $assessmentsByCriteria->first()?->lecturer?->user?->name ?? 'Juri #' . $lecturerId;
-                            $notesJuri = $assessmentsByCriteria->filter(fn($a) => !empty($a->notes));
+                            $notesJuri = $assessmentsByCriteria
+                                ->filter(function ($assessment) {
+                                    if (!is_string($assessment->notes) || trim($assessment->notes) === '') {
+                                        return false;
+                                    }
+
+                                    $decoded = json_decode($assessment->notes, true);
+                                    if (is_array($decoded) && array_key_exists('achievement_scores', $decoded) && count($decoded) === 1) {
+                                        return false;
+                                    }
+
+                                    return true;
+                                });
                         @endphp
                         <div id="tab-juri-{{ $lecturerId }}" class="juri-tab-panel {{ $loop->first ? '' : 'hidden' }}">
                             <div class="overflow-x-auto">

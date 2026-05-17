@@ -131,3 +131,54 @@ test('periode yang sudah berjalan tidak bisa dihapus agar histori tetap ada', fu
         'id' => $context['period']->id,
     ]);
 });
+
+test('jumlah pendaftar pada jadwal universitas hanya menghitung stage universitas', function () {
+    $faculty = Faculty::create([
+        'name' => 'Fakultas Psikologi',
+        'slug' => 'fakultas-psikologi',
+    ]);
+
+    $adminUniv = User::create([
+        'name' => 'Admin Univ Periode',
+        'email' => fake()->unique()->safeEmail(),
+        'password' => 'password',
+        'role' => 'admin_univ',
+        'email_verified_at' => now(),
+    ]);
+
+    $studentA = createParticipant($faculty, 'Mahasiswa Univ A', '22000771');
+    $studentB = createParticipant($faculty, 'Mahasiswa Univ B', '22000772');
+
+    $univPeriod = PilmapresPeriod::create([
+        'faculty_id' => null,
+        'year' => '2026',
+        'is_active' => true,
+        'start_date' => now()->subDays(3)->toDateString(),
+        'end_date' => now()->addDays(3)->toDateString(),
+    ]);
+
+    Registration::create([
+        'period_id' => $univPeriod->id,
+        'student_id' => $studentA->id,
+        'stage' => 'universitas',
+        'status' => 'verified',
+        'file_gk' => 'files/gk/univ-a.pdf',
+        'file_transkrip' => 'files/transkrip/univ-a.pdf',
+    ]);
+
+    Registration::create([
+        'period_id' => $univPeriod->id,
+        'student_id' => $studentB->id,
+        'stage' => 'fakultas',
+        'status' => 'verified',
+        'file_gk' => 'files/gk/fak-b.pdf',
+        'file_transkrip' => 'files/transkrip/fak-b.pdf',
+    ]);
+
+    $response = $this->actingAs($adminUniv)
+        ->get(route('admin.periods.index', ['faculty_id' => 'universitas']));
+
+    $response->assertOk();
+    $response->assertSee('>1<', false);
+    $response->assertDontSee('>2<', false);
+});

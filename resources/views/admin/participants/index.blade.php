@@ -48,10 +48,26 @@
                 </div>
             @endif
 
+            @if(Auth::user()->role !== 'admin_fakultas')
+                <div class="flex space-x-2">
+                    <a href="{{ route('admin.participants.index', ['stage' => 'fakultas', 'faculty_id' => request('faculty_id')]) }}"
+                        class="px-4 py-2 rounded-md font-bold {{ ($stage ?? 'fakultas') == 'fakultas' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 border' }}">
+                        Peserta Tahap Fakultas
+                    </a>
+                    <a href="{{ route('admin.participants.index', ['stage' => 'universitas', 'faculty_id' => request('faculty_id')]) }}"
+                        class="px-4 py-2 rounded-md font-bold {{ ($stage ?? 'fakultas') == 'universitas' ? 'bg-purple-600 text-white shadow' : 'bg-white text-gray-600 border' }}">
+                        Peserta Tahap Universitas
+                    </a>
+                </div>
+            @endif
+
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                 
                 <form method="GET" action="{{ url()->current() }}" class="w-full sm:w-1/2 flex items-center space-x-3">
                     <svg class="w-5 h-5 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    @if(request('stage'))
+                        <input type="hidden" name="stage" value="{{ request('stage') }}">
+                    @endif
                     
                     @if(Auth::user()->role !== 'admin_fakultas')
                     <select name="faculty_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 text-sm font-semibold text-gray-700 transition" onchange="this.form.submit()">
@@ -113,6 +129,10 @@
                         @endforelse
                     </tbody>
                 </table>
+
+                <div class="mt-4">
+                    {{ $participants->links() }}
+                </div>
             </div>
         </div>
 

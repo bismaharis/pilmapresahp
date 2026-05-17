@@ -62,9 +62,10 @@ function createJuriAssessmentContext(): array
         'period_id' => $period->id,
         'student_id' => $student->id,
         'stage' => 'fakultas',
-        'status' => 'draft',
+        'status' => 'submitted',
         'file_gk' => 'files/gk/gk.pdf',
         'file_transkrip' => 'files/transkrip/transkrip.pdf',
+        'file_poster_diri' => 'files/posters/poster-diri.pdf',
     ]);
 
     Achievement::create([
@@ -93,7 +94,13 @@ test('halaman edit penilaian juri menampilkan popup viewer dan tautan download s
     $response->assertOk();
     $response->assertSee('id="file-viewer-modal"', false);
     $response->assertSee('id="file-viewer-frame"', false);
+    $response->assertSee('id="file-viewer-open-new-tab"', false);
+    $response->assertSee('max-w-3xl', false);
     $response->assertSee('openFileViewer(', false);
+    $response->assertSee('/storage/files/transkrip/transkrip.pdf', false);
+    $response->assertSee('Buka Transkrip', false);
+    $response->assertSee('/storage/files/posters/poster-diri.pdf', false);
+    $response->assertSee('Lihat Poster Diri', false);
     $response->assertSee('/storage/files/proof/bukti.pdf', false);
     $response->assertSee('Download Sertifikat/Bukti', false);
     $response->assertSee('download', false);

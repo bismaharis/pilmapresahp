@@ -74,7 +74,7 @@
                 </a>
             @endif
 
-            <div x-data="{ open: {{ request()->routeIs('superadmin.delegation.*', 'admin.ranking.*') ? 'true' : 'false' }} }">
+            <div x-data="{ open: {{ request()->routeIs('superadmin.delegation.*', 'superadmin.committees.*', 'admin.ranking.*') ? 'true' : 'false' }} }">
                 <button @click="open = !open" class="w-full flex items-center justify-between px-4 md:px-6 py-2 md:py-3 text-sm md:text-base hover:bg-gray-700 hover:text-white transition">
                     <div class="flex items-center min-w-0">
                         <svg class="w-5 h-5 mr-2 md:mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
@@ -84,7 +84,10 @@
                 </button>
                 <div x-show="open" x-collapse class="bg-[#333333]">
                     @if(Auth::user()->role === 'super_admin')
-                        <a href="{{ route('superadmin.delegation.juries.index') }}" class="block px-10 md:px-14 py-2 text-xs md:text-sm {{ request()->routeIs('superadmin.delegation.juries.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'text-gray-400 hover:text-white'}}">Delegasi Juri</a>
+                        <a href="{{ route('superadmin.committees.index', ['stage' => 'fakultas']) }}" class="block px-10 md:px-14 py-2 text-xs md:text-sm {{ request()->routeIs('superadmin.committees.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'text-gray-400 hover:text-white'}}">Delegasi Admin</a>
+                    @endif
+                    @if(in_array(Auth::user()->role, ['super_admin', 'admin_univ']))
+                        <a href="{{ route('admin.juries.index', ['stage' => 'fakultas']) }}" class="block px-10 md:px-14 py-2 text-xs md:text-sm {{ request()->routeIs('admin.juries.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'text-gray-400 hover:text-white'}}">Delegasi Juri</a>
                     @endif
                     <a href="{{ route('admin.ranking.index') }}" class="block px-10 md:px-14 py-2 text-xs md:text-sm {{ request()->routeIs('admin.ranking.*') ? 'bg-gray-600 text-white border-l-4 border-cyan-500' : 'text-gray-400 hover:text-white'}}">Delegasi Peserta</a>
                 </div>
@@ -120,7 +123,7 @@
             </a>
         @endif
 
-        @php $guidebookUrl = \App\Models\Setting::get('guidebook_url'); @endphp
+        @php $guidebookUrl = \App\Models\Setting::getGuidebookUrlForUser(Auth::user()); @endphp
         @if($guidebookUrl)
         <a href="{{ $guidebookUrl }}" target="_blank" class="flex items-center px-4 md:px-6 py-2 md:py-3 text-sm md:text-base mt-4 border-t border-gray-600 hover:bg-gray-700 hover:text-white">
             <svg class="w-5 h-5 mr-2 md:mr-3 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>

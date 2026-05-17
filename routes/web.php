@@ -75,6 +75,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin,admin_univ,admin_fakult
         Route::delete('/juries/{user}', [\App\Http\Controllers\Admin\JuriController::class, 'destroy'])->name('juries.destroy');
         Route::get('/juries/{user}/edit', [\App\Http\Controllers\Admin\JuriController::class, 'edit'])->name('juries.edit');
         Route::put('/juries/{user}', [\App\Http\Controllers\Admin\JuriController::class, 'update'])->name('juries.update');
+        Route::patch('/juries/{lecturer}/toggle-delegation', [\App\Http\Controllers\Admin\JuriController::class, 'toggleDelegation'])->name('juries.toggle_delegation');
 
         Route::get('/participants', [\App\Http\Controllers\Admin\ParticipantController::class, 'index'])->name('participants.index');
         Route::post('/participants', [\App\Http\Controllers\Admin\ParticipantController::class, 'store'])->name('participants.store');

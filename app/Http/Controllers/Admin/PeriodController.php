@@ -37,7 +37,18 @@ class PeriodController extends Controller
             $facultyId = $user->faculty_id;
         }
 
-        $query = PilmapresPeriod::withCount('registrations')
+        $query = PilmapresPeriod::query()
+            ->withCount([
+                'registrations as registrations_count' => function ($registrationQuery) use ($facultyId) {
+                    if ($facultyId === null) {
+                        $registrationQuery->where('stage', 'universitas');
+
+                        return;
+                    }
+
+                    $registrationQuery->where('stage', 'fakultas');
+                },
+            ])
             ->orderByDesc('start_date');
 
         if ($facultyId === null) {
@@ -47,7 +58,7 @@ class PeriodController extends Controller
         }
 
         $periods = $query->get();
-        $faculties = $isSuperAdmin ? Faculty::orderBy('name')->get() : collect();
+        $faculties = $isSuperAdmin ? Faculty::query()->orderBy('name', 'asc')->get() : collect();
         $selectedFacultyId = $isSuperAdmin ? ($request->query('faculty_id') ?? 'universitas') : null;
 
         return view('admin.periods.index', compact('periods', 'faculties', 'selectedFacultyId'));
@@ -158,7 +169,7 @@ class PeriodController extends Controller
         }
 
         // Nonaktifkan periode aktif lama milik fakultas/universitas ini
-        PilmapresPeriod::where('is_active', true)
+        PilmapresPeriod::query()->where('is_active', '=', true)
             ->when($facultyId === null, fn ($q) => $q->whereNull('faculty_id'), fn ($q) => $q->where('faculty_id', $facultyId))
             ->update(['is_active' => false]);
 
@@ -186,7 +197,7 @@ class PeriodController extends Controller
 
         // Jika diaktifkan, nonaktifkan yang lain dulu
         if ($request->boolean('is_active')) {
-            PilmapresPeriod::where('faculty_id', $period->faculty_id)
+            PilmapresPeriod::query()->where('faculty_id', '=', $period->faculty_id)
                 ->where('id', '!=', $period->id)
                 ->update(['is_active' => false]);
         }
@@ -213,7 +224,7 @@ class PeriodController extends Controller
             return back()->with('error', 'Jadwal yang sudah berjalan atau sudah lewat tidak bisa dihapus agar histori tetap tersimpan.');
         }
 
-        $period->delete();
+        PilmapresPeriod::query()->whereKey($period->id)->delete();
 
         return back()->with('success', 'Jadwal seleksi berhasil dihapus.');
     }

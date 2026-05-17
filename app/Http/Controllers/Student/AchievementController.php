@@ -24,7 +24,7 @@ class AchievementController extends Controller
             return redirect()->route('profile.edit')
                 ->with('error', 'Silakan lengkapi biodata akademik Anda (NIM, Prodi, dsb) terlebih dahulu sebelum mengakses halaman pendaftaran.');
         }
-        
+
         $activePeriod = PilmapresPeriod::getActivePeriodForFaculty($student->faculty_id);
 
         $registration = $activePeriod
@@ -33,7 +33,7 @@ class AchievementController extends Controller
                 ['stage' => 'fakultas', 'status' => 'draft']
             )
             : $student->registrations()->latest()->first();
- 
+
         $achievements = $registration
             ? $registration->achievements()->latest()->get()
             : collect();
@@ -45,8 +45,13 @@ class AchievementController extends Controller
     {
         $student = Auth::user()->student;
 
+        if (! $student) {
+            return redirect()->route('profile.edit')
+                ->with('error', 'Silakan lengkapi biodata akademik Anda (NIM, Prodi, dsb) terlebih dahulu sebelum mengakses halaman capaian unggulan.');
+        }
+
         $activePeriod = PilmapresPeriod::getActivePeriodForFaculty($student->faculty_id);
-        if (!$activePeriod) {
+        if (! $activePeriod) {
             return back()->with('error', 'Tidak dapat menambah capaian karena tidak ada periode seleksi yang sedang berjalan.');
         }
 
@@ -82,13 +87,23 @@ class AchievementController extends Controller
             return back()->with('success', 'Capaian Unggulan berhasil ditambahkan.');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($path) {
+                Storage::disk($disk)->delete($path);
+            }
+
             return back()->withErrors($e->errors())->withInput();
         }
     }
 
     public function destroy($id)
     {
-        $studentId = Auth::user()->student->id;
+        $student = Auth::user()->student;
+        if (! $student) {
+            return redirect()->route('profile.edit')
+                ->with('error', 'Silakan lengkapi biodata akademik Anda (NIM, Prodi, dsb) terlebih dahulu sebelum mengelola capaian unggulan.');
+        }
+
+        $studentId = $student->id;
         $this->achievementService->delete($id, $studentId);
 
         return back()->with('success', 'Item berhasil dihapus.');

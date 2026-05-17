@@ -29,29 +29,46 @@ class ParticipantController extends Controller
 
     public function index(Request $request)
     {
+        $request->validate([
+            'faculty_id' => ['nullable', 'integer', 'exists:faculties,id'],
+            'stage' => ['nullable', 'in:fakultas,universitas'],
+        ]);
+
         $adminFacultyId = $this->getAdminFacultyId();
+        $stage = $request->query('stage', 'fakultas');
         $faculties = $adminFacultyId
-            ? Faculty::where('id', $adminFacultyId)->get()
+            ? Faculty::query()->whereKey($adminFacultyId)->get()
             : Faculty::all();
         $admin = Auth::user();
 
-        $query = User::where('role', 'mahasiswa')->with('student.faculty');
+        $query = User::query()->where('role', 'mahasiswa')->with('student.faculty');
 
         if ($admin->role === 'admin_fakultas') {
             $query->whereHas('student', function ($q) use ($admin) {
                 $q->where('faculty_id', $admin->faculty_id);
             });
+            $query->whereHas('student.registrations', function ($q) {
+                $q->where('stage', 'fakultas');
+            });
+            $stage = 'fakultas';
         } else {
             if ($request->filled('faculty_id')) {
                 $query->whereHas('student', function ($q) use ($request) {
                     $q->where('faculty_id', $request->faculty_id);
                 });
             }
+
+            $query->whereHas('student.registrations', function ($q) use ($stage) {
+                $q->where('stage', $stage);
+            });
         }
 
-        $participants = $query->get();
+        $participants = $query
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('admin.participants.index', compact('participants', 'faculties'));
+        return view('admin.participants.index', compact('participants', 'faculties', 'stage'));
     }
 
     public function store(Request $request)
@@ -95,6 +112,8 @@ class ParticipantController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $this->authorizeParticipant($user);
+
         $adminFacultyId = $this->getAdminFacultyId();
         $studentId = $user->student ? $user->student->id : null;
 
@@ -140,6 +159,8 @@ class ParticipantController extends Controller
 
     public function destroy(User $user)
     {
+        $this->authorizeParticipant($user);
+
         // $user->delete();
         // return back()->with('success', 'Akun Peserta berhasil dihapus!');
 
@@ -150,15 +171,32 @@ class ParticipantController extends Controller
                         ->where('student_id', $user->student->id)
                         ->delete();
 
-                    $user->student->delete();
+                    Student::query()->whereKey($user->student->id)->delete();
                 }
 
-                $user->delete();
+                User::query()->whereKey($user->id)->delete();
             });
 
             return back()->with('success', 'Akun Peserta dan semua data terkait berhasil dihapus!');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menghapus data: '.$e->getMessage());
+        }
+    }
+
+    private function authorizeParticipant(User $user): void
+    {
+        if ($user->role !== 'mahasiswa') {
+            abort(404);
+        }
+
+        $adminFacultyId = $this->getAdminFacultyId();
+        if (! $adminFacultyId) {
+            return;
+        }
+
+        $participantsFacultyId = $user->student?->faculty_id;
+        if ((int) $participantsFacultyId !== $adminFacultyId) {
+            abort(403, 'Anda tidak memiliki akses ke peserta ini.');
         }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Juri;
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
 use App\Models\Criteria;
+use App\Models\PilmapresPeriod;
 use App\Models\Registration;
 use App\Services\AhpCalculatorService;
 use App\Services\AssessmentService;
@@ -21,40 +22,49 @@ class AssessmentController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $juri = $user->lecturer;
+        $juri = $this->resolveLecturerProfile();
 
         // Base query untuk registration yang eligible dinilai
-        $baseQuery = Registration::where(function ($q) {
-            $q->where(function ($sub) {
-                $sub->whereIn('status', ['submitted', 'verified', 'approved'])
-                    ->whereNotNull('file_gk')
-                    ->whereNotNull('file_transkrip');
-            })->orWhere(function ($sub) {
-                $sub->where('status', 'draft')
-                    ->whereNotNull('file_gk')
-                    ->whereNotNull('file_transkrip');
-            });
+        $baseQuery = Registration::query()->where(function ($q) {
+            $q->whereIn('status', ['submitted', 'verified', 'approved'])
+                ->whereNotNull('file_gk')
+                ->whereNotNull('file_transkrip');
         });
 
         // Filter berdasarkan jenis juri
         if ($juri->is_univ_judge) {
             // Juri universitas hanya lihat mahasiswa yang sudah lolos ke universitas
             $query = $baseQuery->where('stage', 'universitas');
+
+            $activeUniversityPeriod = PilmapresPeriod::getActiveUniversityPeriod();
+            if ($activeUniversityPeriod) {
+                $query->whereHas('period', function ($periodQuery) use ($activeUniversityPeriod) {
+                    $periodQuery->where('year', '=', $activeUniversityPeriod->year);
+                });
+            }
         } else {
             // Juri fakultas hanya lihat mahasiswa dari fakultasnya sendiri di tingkat fakultas
             $query = $baseQuery->where('stage', 'fakultas')
                 ->whereHas('student', function ($q) use ($juri) {
                     $q->where('faculty_id', $juri->faculty_id);
                 });
+
+            $activeFacultyPeriod = PilmapresPeriod::getActivePeriodForFaculty((int) $juri->faculty_id);
+            if ($activeFacultyPeriod) {
+                $query->where('period_id', '=', $activeFacultyPeriod->id);
+            }
         }
 
         // Eager load relationships AFTER filtering
         $registrations = $query->with(['student.user', 'achievements'])->get();
 
-        $sudahDinilai = Assessment::where('lecturer_id', $juri->id)
-            ->whereIn('registration_id', $registrations->pluck('id'))
-            ->pluck('registration_id')
-            ->unique()
+        $assessedRegistrationIds = Assessment::query()
+            ->where('lecturer_id', $juri->id)
+            ->pluck('registration_id');
+
+        $sudahDinilai = $assessedRegistrationIds
+            ->intersect($registrations->pluck('id'))
+            ->values()
             ->toArray();
 
         return view('juri.assessment.index', compact('registrations', 'juri', 'sudahDinilai'));
@@ -62,8 +72,7 @@ class AssessmentController extends Controller
 
     public function edit(Registration $registration)
     {
-        $user = Auth::user();
-        $juri = $user->lecturer;
+        $juri = $this->resolveLecturerProfile();
         $registration = Registration::with('achievements', 'student.user')->findOrFail($registration->id);
 
         // $existingAssessments = Assessment::where('registration_id', $registration->id)
@@ -75,26 +84,49 @@ class AssessmentController extends Controller
 
         $registration->load('achievements');
 
-        $criteriaTree = Criteria::whereNull('parent_id')
+        $criteriaTree = Criteria::query()->where('parent_id', '=', null)
             ->with(['children.children.children'])
             ->get();
 
-        $existingScores = Assessment::where('registration_id', $registration->id)
+        $existingAssessments = Assessment::query()->where('registration_id', $registration->id)
             ->where('lecturer_id', $juri->id)
+            ->get(['criteria_id', 'score', 'notes']);
+
+        $existingScores = $existingAssessments
             ->pluck('score', 'criteria_id')
             ->toArray();
 
-        $existingNotes = Assessment::where('registration_id', $registration->id)
-            ->where('lecturer_id', $juri->id)
+        $existingNotes = $existingAssessments
             ->pluck('notes', 'criteria_id')
             ->toArray();
 
-        return view('juri.assessment.edit', compact('registration', 'criteriaTree', 'existingScores', 'existingNotes'));
+        $existingAchievementScores = [];
+        foreach ($existingAssessments as $assessment) {
+            if (! is_string($assessment->notes) || $assessment->notes === '') {
+                continue;
+            }
+
+            $decodedNotes = json_decode($assessment->notes, true);
+            if (! is_array($decodedNotes)) {
+                continue;
+            }
+
+            $achievementScores = $decodedNotes['achievement_scores'] ?? null;
+            if (! is_array($achievementScores)) {
+                continue;
+            }
+
+            foreach ($achievementScores as $achievementId => $scoreValue) {
+                $existingAchievementScores[(int) $achievementId] = (float) $scoreValue;
+            }
+        }
+
+        return view('juri.assessment.edit', compact('registration', 'criteriaTree', 'existingScores', 'existingNotes', 'existingAchievementScores'));
     }
 
     public function update(Request $request, Registration $registration)
     {
-        $juri = Auth::user()->lecturer;
+        $juri = $this->resolveLecturerProfile();
 
         $this->authorizeJuri($juri, $registration);
 
@@ -104,8 +136,43 @@ class AssessmentController extends Controller
             'achievement_scores' => 'nullable|array',
             'achievement_scores.*' => 'numeric|min:0|max:50',
             'notes' => 'nullable|array',
-            'notes.*' => 'nullable|string',
+            'notes.*' => 'nullable|string|max:2000',
         ]);
+
+        $leafNonCuCriteria = Criteria::query()
+            ->where('type', '!=', 'cu')
+            ->doesntHave('children')
+            ->get(['id', 'max_score'])
+            ->keyBy('id');
+
+        foreach (($request->scores ?? []) as $criteriaId => $scoreValue) {
+            $criteria = $leafNonCuCriteria->get((int) $criteriaId);
+            if (! $criteria) {
+                return back()->withErrors([
+                    'scores' => 'Terdapat kriteria penilaian yang tidak valid.',
+                ])->withInput();
+            }
+
+            if ((float) $scoreValue > (float) $criteria->max_score) {
+                return back()->withErrors([
+                    "scores.$criteriaId" => 'Nilai melebihi batas maksimum kriteria.',
+                ])->withInput();
+            }
+        }
+
+        $allowedAchievementIds = $registration->achievements()
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id)
+            ->toArray();
+
+        $submittedAchievementIds = array_map('strval', array_keys($request->achievement_scores ?? []));
+        $unknownAchievementIds = array_diff($submittedAchievementIds, $allowedAchievementIds);
+
+        if (! empty($unknownAchievementIds)) {
+            return back()->withErrors([
+                'achievement_scores' => 'Terdapat data capaian unggulan yang tidak valid.',
+            ])->withInput();
+        }
 
         // $juri->id = Auth::user()->lecturer->id;
 
@@ -137,6 +204,14 @@ class AssessmentController extends Controller
 
     private function authorizeJuri($juri, Registration $registration): void
     {
+        $isEligibleRegistration = in_array($registration->status, ['submitted', 'verified', 'approved'], true)
+            && $registration->file_gk
+            && $registration->file_transkrip;
+
+        if (! $isEligibleRegistration) {
+            abort(403, 'Akses Ditolak: Peserta belum memenuhi syarat untuk dinilai.');
+        }
+
         if ($juri->is_univ_judge) {
             if ($registration->stage !== 'universitas') {
                 abort(403, 'Akses Ditolak: Anda hanya dapat menilai peserta di tahap Universitas.');
@@ -152,5 +227,15 @@ class AssessmentController extends Controller
                 abort(403, 'Conflict of Interest: Anda dilarang menilai mahasiswa dari Program Studi Anda sendiri.');
             }
         }
+    }
+
+    private function resolveLecturerProfile()
+    {
+        $lecturer = Auth::user()?->lecturer;
+        if (! $lecturer) {
+            abort(403, 'Akun Anda belum terhubung ke profil dosen. Hubungi admin.');
+        }
+
+        return $lecturer;
     }
 }

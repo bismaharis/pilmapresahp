@@ -9,11 +9,17 @@ use App\Services\UniversityDelegationNotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RankingController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate([
+            'stage' => ['nullable', 'in:fakultas,universitas'],
+            'faculty_id' => ['nullable', 'integer', 'exists:faculties,id'],
+        ]);
+
         $faculties = Faculty::all();
         $user = Auth::user();
         $role = $user->role;
@@ -33,7 +39,7 @@ class RankingController extends Controller
 
         $scoreColumn = $stage === 'fakultas' ? 'total_score_fakultas' : 'total_score_univ';
 
-        $query = Registration::with(['student.user', 'student.faculty'])
+        $query = Registration::query()->with(['student.user', 'student.faculty'])
             ->where('stage', $stage)
             ->whereNotNull($scoreColumn);
 
@@ -59,6 +65,11 @@ class RankingController extends Controller
 
     public function exportPdf(Request $request)
     {
+        $request->validate([
+            'stage' => ['nullable', 'in:fakultas,universitas'],
+            'faculty_id' => ['nullable', 'integer', 'exists:faculties,id'],
+        ]);
+
         $user = Auth::user();
         $role = $user->role;
 
@@ -73,7 +84,7 @@ class RankingController extends Controller
 
         $scoreColumn = $stage === 'fakultas' ? 'total_score_fakultas' : 'total_score_univ';
 
-        $query = Registration::with(['student.user', 'student.faculty'])
+        $query = Registration::query()->with(['student.user', 'student.faculty'])
             ->where('stage', $stage)
             ->whereNotNull($scoreColumn);
 
@@ -82,13 +93,13 @@ class RankingController extends Controller
                 $q->where('faculty_id', $user->faculty_id);
             });
 
-            $faculty = Faculty::find($user->faculty_id);
+            $faculty = Faculty::query()->whereKey($user->faculty_id)->first();
         } else {
             if ($request->filled('faculty_id')) {
                 $query->whereHas('student', function ($q) use ($request) {
                     $q->where('faculty_id', $request->faculty_id);
                 });
-                $faculty = Faculty::find($request->faculty_id);
+                $faculty = Faculty::query()->whereKey($request->faculty_id)->first();
             } else {
                 $faculty = null;
             }
@@ -99,7 +110,7 @@ class RankingController extends Controller
 
         $rankings = $query->orderBy($scoreColumn, 'desc')->get();
 
-        \Log::info('Ranking PDF Export Debug', [
+        Log::info('Ranking PDF Export Debug', [
             'stage' => $stage,
             'role' => $role,
             'user_faculty_id' => $user->faculty_id ?? null,
@@ -150,25 +161,49 @@ class RankingController extends Controller
 
     public function delegate(Registration $registration, UniversityDelegationNotificationService $notificationService)
     {
+        $registration->loadMissing('student.user');
+
         $user = Auth::user();
         if ($user->role === 'admin_fakultas' &&
             $registration->student->faculty_id != $user->faculty_id) {
             abort(403, 'Anda tidak berhak mendelegasikan peserta dari fakultas lain.');
         }
+
+        if ($registration->stage !== 'fakultas') {
+            return back()->with('error', 'Peserta hanya dapat didelegasikan jika berada di tahap fakultas.');
+        }
+
         $registration->update(['stage' => 'universitas']);
 
-        $notificationService->sendParticipantDelegatedToUniversity($registration);
+        try {
+            $notificationService->sendParticipantDelegatedToUniversity($registration);
+        } catch (\Throwable $exception) {
+            Log::error('Gagal mengirim email delegasi peserta universitas.', [
+                'registration_id' => $registration->id,
+                'student_id' => $registration->student_id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->with('warning', 'Peserta berhasil didelegasikan, tetapi email notifikasi gagal dikirim.');
+        }
 
         return back()->with('success', 'Peserta berhasil didelegasikan ke tingkat Universitas!');
     }
 
     public function cancelDelegate(Registration $registration)
     {
+        $registration->loadMissing('student');
+
         $user = Auth::user();
         if ($user->role === 'admin_fakultas' &&
             $registration->student->faculty_id != $user->faculty_id) {
             abort(403, 'Anda tidak berhak membatalkan delegasi peserta dari fakultas lain.');
         }
+
+        if ($registration->stage !== 'universitas') {
+            return back()->with('error', 'Delegasi hanya dapat dibatalkan untuk peserta di tahap universitas.');
+        }
+
         $registration->update(['stage' => 'fakultas']);
 
         return back()->with('success', 'Delegasi dibatalkan!');

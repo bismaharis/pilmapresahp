@@ -42,6 +42,20 @@
             </div>
 
             <div class="md:col-span-2 space-y-6">
+                @if(in_array(Auth::user()->role, ['super_admin', 'admin_univ']))
+                    <div class="mb-4 flex justify-between items-center">
+                        <div class="flex space-x-2">
+                            <a href="{{ route('admin.juries.index', ['stage' => 'fakultas', 'faculty_id' => request('faculty_id')]) }}"
+                            class="px-4 py-2 rounded-md font-bold {{ $stage == 'fakultas' ? 'bg-blue-600 text-white shadow' : 'bg-white text-gray-600 border' }}">
+                                Juri Tingkat Fakultas
+                            </a>
+                            <a href="{{ route('admin.juries.index', ['stage' => 'universitas', 'faculty_id' => request('faculty_id')]) }}"
+                            class="px-4 py-2 rounded-md font-bold {{ $stage == 'universitas' ? 'bg-purple-600 text-white shadow' : 'bg-white text-gray-600 border' }}">
+                                Juri Tingkat Universitas
+                            </a>
+                        </div>
+                    </div>
+                @endif
                 
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="flex items-center space-x-3">
@@ -67,6 +81,7 @@
 
                 <div class="bg-white p-6 shadow-sm rounded-lg">
                     <x-auth-session-status class="mb-4" :status="session('success')" />
+                    <x-auth-session-status class="mb-4" :status="session('warning')" />
                     <h3 class="font-bold text-lg mb-4 text-gray-800">Daftar Juri Aktif</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm text-left border-collapse">
@@ -91,6 +106,21 @@
                                     <td class="px-4 py-3 text-center">
                                         <div class="flex justify-center space-x-2">
                                             <a href="{{ route('admin.juries.edit', $juri->id) }}" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded hover:bg-blue-200 text-xs font-bold transition">Edit</a>
+                                            @if(in_array(Auth::user()->role, ['super_admin', 'admin_univ']) && $juri->lecturer)
+                                                <form action="{{ route('admin.juries.toggle_delegation', $juri->lecturer->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    @if($juri->lecturer->is_univ_judge)
+                                                        <button type="submit" class="bg-purple-100 text-purple-700 px-3 py-1.5 rounded hover:bg-purple-200 text-xs font-bold transition" onclick="return confirm('Turunkan kembali menjadi Juri Fakultas?')">
+                                                            Turunkan
+                                                        </button>
+                                                    @else
+                                                        <button type="submit" class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-xs font-bold transition" onclick="return confirm('Naikkan dosen ini menjadi Juri Universitas?')">
+                                                            Naikkan
+                                                        </button>
+                                                    @endif
+                                                </form>
+                                            @endif
                                             <form action="{{ route('admin.juries.destroy', $juri->id) }}" method="POST" onsubmit="return confirm('Hapus juri ini beserta seluruh data nilainya?')">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200 text-xs font-bold transition">Hapus</button>
@@ -105,6 +135,10 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="mt-4">
+                        {{ $juries->links() }}
                     </div>
                 </div>
                 

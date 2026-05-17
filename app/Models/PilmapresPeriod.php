@@ -52,7 +52,24 @@ class PilmapresPeriod extends Model
     {
         $today = Carbon::today();
 
-        return self::where('faculty_id', $facultyId)
+        return self::query()
+            ->where('faculty_id', $facultyId)
+            ->where('is_active', true)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->latest('id')
+            ->first();
+    }
+
+    /**
+     * Ambil periode aktif yang sedang berjalan untuk tingkat universitas.
+     */
+    public static function getActiveUniversityPeriod(): ?self
+    {
+        $today = Carbon::today();
+
+        return self::query()
+            ->whereNull('faculty_id')
             ->where('is_active', true)
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)

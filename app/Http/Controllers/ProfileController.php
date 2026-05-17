@@ -42,7 +42,8 @@ class ProfileController extends Controller
             $path = $request->file('photo')->store('profile-photos', config('filesystems.default_public_disk'));
             $request->user()->photo = $path;
         }
-        $request->user()->update(['faculty_id' => $request->faculty_id]);
+
+        $request->user()->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -51,16 +52,23 @@ class ProfileController extends Controller
     public function updateAcademic(Request $request): RedirectResponse
     {
         $request->validate([
-            'faculty_id' => 'required|exists:faculties,id',
             'nim' => 'required|string|max:20',
             'prodi' => 'required|string|max:100',
             'semester' => 'required|integer|min:1|max:14',
             'ipk' => 'required|numeric|min:0|max:4',
         ]);
 
+        $lockedFacultyId = (int) ($request->user()->student?->faculty_id ?? $request->user()->faculty_id ?? 0);
+        if ($lockedFacultyId <= 0) {
+            return back()->with('error', 'Data fakultas akun Anda belum valid. Hubungi admin untuk pembaruan fakultas.');
+        }
+
         $request->user()->student()->updateOrCreate(
             ['user_id' => $request->user()->id],
-            $request->only(['faculty_id', 'nim', 'prodi', 'semester', 'ipk'])
+            array_merge(
+                $request->only(['nim', 'prodi', 'semester', 'ipk']),
+                ['faculty_id' => $lockedFacultyId]
+            )
         );
 
         return back()->with('status', 'academic-updated')->with('success', 'Data Akademik berhasil disimpan!');
@@ -70,14 +78,21 @@ class ProfileController extends Controller
     public function updateLecturer(Request $request): RedirectResponse
     {
         $request->validate([
-            'faculty_id' => 'required|exists:faculties,id',
             'nip' => 'nullable|string|max:50',
             'unit_kerja' => 'required|string|max:100',
         ]);
 
+        $lockedFacultyId = (int) ($request->user()->lecturer?->faculty_id ?? $request->user()->faculty_id ?? 0);
+        if ($lockedFacultyId <= 0) {
+            return back()->with('error', 'Data fakultas akun Anda belum valid. Hubungi admin untuk pembaruan fakultas.');
+        }
+
         $request->user()->lecturer()->updateOrCreate(
             ['user_id' => $request->user()->id],
-            $request->only(['faculty_id', 'nip', 'unit_kerja'])
+            array_merge(
+                $request->only(['nip', 'unit_kerja']),
+                ['faculty_id' => $lockedFacultyId]
+            )
         );
 
         return back()->with('status', 'lecturer-updated')->with('success', 'Data Pegawai berhasil disimpan!');
