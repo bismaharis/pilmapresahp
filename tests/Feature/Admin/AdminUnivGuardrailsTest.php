@@ -180,6 +180,22 @@ test('admin fakultas can view settings page', function () {
     $response->assertOk();
 });
 
+test('guidebook lookup falls back to university scope when faculty context is missing', function () {
+    Setting::setGuidebookUrl(Setting::GUIDEBOOK_SCOPE_UNIVERSITY, 'https://example.com/university-guidebook.pdf');
+
+    $studentWithoutFaculty = User::create([
+        'name' => 'Mahasiswa Tanpa Fakultas',
+        'email' => fake()->unique()->safeEmail(),
+        'password' => 'password',
+        'role' => 'mahasiswa',
+        'faculty_id' => null,
+        'email_verified_at' => now(),
+    ]);
+
+    expect(fn () => Setting::getGuidebookUrlForUser($studentWithoutFaculty))->not->toThrow(InvalidArgumentException::class);
+    expect(Setting::getGuidebookUrlForUser($studentWithoutFaculty))->toBe('https://example.com/university-guidebook.pdf');
+});
+
 test('admin univ can delegate jury to university via admin juries page', function () {
     Mail::fake();
 

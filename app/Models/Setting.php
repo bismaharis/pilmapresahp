@@ -37,6 +37,10 @@ class Setting extends Model
 
     public static function getGuidebookUrlForScope(string $scope, ?int $facultyId = null): ?string
     {
+        if ($scope === self::GUIDEBOOK_SCOPE_FACULTY && empty($facultyId)) {
+            return null;
+        }
+
         $key = self::resolveGuidebookKey($scope, $facultyId);
 
         return self::get($key);
@@ -49,7 +53,9 @@ class Setting extends Model
         }
 
         if ($user->role === 'admin_fakultas' || $user->role === 'mahasiswa') {
-            return self::getGuidebookUrlForScope(self::GUIDEBOOK_SCOPE_FACULTY, (int) $user->faculty_id)
+            $facultyId = $user->faculty_id ? (int) $user->faculty_id : null;
+
+            return self::getGuidebookUrlForScope(self::GUIDEBOOK_SCOPE_FACULTY, $facultyId)
                 ?? self::getGuidebookUrlForScope(self::GUIDEBOOK_SCOPE_UNIVERSITY);
         }
 
@@ -58,7 +64,9 @@ class Setting extends Model
                 return self::getGuidebookUrlForScope(self::GUIDEBOOK_SCOPE_UNIVERSITY);
             }
 
-            return self::getGuidebookUrlForScope(self::GUIDEBOOK_SCOPE_FACULTY, (int) $user->lecturer->faculty_id)
+            $facultyId = $user->lecturer->faculty_id ? (int) $user->lecturer->faculty_id : null;
+
+            return self::getGuidebookUrlForScope(self::GUIDEBOOK_SCOPE_FACULTY, $facultyId)
                 ?? self::getGuidebookUrlForScope(self::GUIDEBOOK_SCOPE_UNIVERSITY);
         }
 
