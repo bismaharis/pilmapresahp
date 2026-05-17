@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Faculty;
+use App\Models\PilmapresPeriod;
 use App\Models\User;
 
 beforeEach(function () {
@@ -18,6 +19,14 @@ it('super admin can view participants index', function () {
 });
 
 it('super admin can store a new participant', function () {
+    PilmapresPeriod::create([
+        'faculty_id' => $this->faculty->id,
+        'year' => now()->year,
+        'is_active' => true,
+        'start_date' => now()->subDay(),
+        'end_date' => now()->addDay(),
+    ]);
+
     $response = $this->actingAs($this->superAdmin)
         ->post(route('admin.participants.store'), [
             'name' => 'Test Mahasiswa',
@@ -31,6 +40,9 @@ it('super admin can store a new participant', function () {
     $response->assertRedirect(route('admin.participants.index'));
     $response->assertSessionHas('success');
 
+    $this->get(route('admin.participants.index'))
+        ->assertSee('Test Mahasiswa');
+
     $this->assertDatabaseHas('users', [
         'email' => 'testmahasiswa@example.com',
         'role' => 'mahasiswa',
@@ -42,5 +54,9 @@ it('super admin can store a new participant', function () {
         'prodi' => 'Teknik Informatika',
         'faculty_id' => $this->faculty->id,
         'semester' => 1,
+    ]);
+
+    $this->assertDatabaseHas('registrations', [
+        'stage' => 'fakultas',
     ]);
 });

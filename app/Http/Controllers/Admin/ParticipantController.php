@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Faculty;
+use App\Models\PilmapresPeriod;
+use App\Models\Registration;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -90,22 +92,33 @@ class ParticipantController extends Controller
 
         $selectedFacultyId = $adminFacultyId ?? (int) $request->faculty_id;
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'mahasiswa',
-            'faculty_id' => $selectedFacultyId,
-        ]);
+        DB::transaction(function () use ($request, $selectedFacultyId): void {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => 'mahasiswa',
+                'faculty_id' => $selectedFacultyId,
+            ]);
 
-        Student::create([
-            'user_id' => $user->id,
-            'faculty_id' => $selectedFacultyId,
-            'nim' => $request->nim,
-            'prodi' => $request->prodi,
-            'semester' => 1,
-            'ipk' => 0.00,
-        ]);
+            $student = Student::create([
+                'user_id' => $user->id,
+                'faculty_id' => $selectedFacultyId,
+                'nim' => $request->nim,
+                'prodi' => $request->prodi,
+                'semester' => 1,
+                'ipk' => 0.00,
+            ]);
+
+            $activePeriod = PilmapresPeriod::getActivePeriodForFaculty($selectedFacultyId);
+
+            if ($activePeriod) {
+                Registration::firstOrCreate(
+                    ['student_id' => $student->id, 'period_id' => $activePeriod->id],
+                    ['stage' => 'fakultas', 'status' => 'draft']
+                );
+            }
+        });
 
         return redirect()->route('admin.participants.index')->with('success', 'Akun Peserta berhasil ditambahkan!');
     }
